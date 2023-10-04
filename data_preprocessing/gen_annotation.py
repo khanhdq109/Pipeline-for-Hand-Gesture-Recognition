@@ -1,7 +1,7 @@
 import os
 
 def gen_label(
-    src = '../../datasets/JESTER-V1/annotations/csv/jester-v1-labels.csv',
+    src = 'csv/jester-v1-labels.csv',
     des = '../../datasets/JESTER-V1/annotations/jester-v1-labels.txt'
 ):
     print('Generating label file...')
@@ -18,13 +18,13 @@ def gen_annotation(
 ):
     # Choose mode
     if mode == 'train':
-        src = os.path.join(path, 'csv/jester-v1-train.csv')
+        src = 'csv/jester-v1-train.csv'
         des = os.path.join(path, 'jester-v1-train.txt')
     elif mode == 'val':
-        src = os.path.join(path, 'csv/jester-v1-validation.csv')
+        src = 'csv/jester-v1-validation.csv'
         des = os.path.join(path, 'jester-v1-validation.txt')
     elif mode == 'test':
-        src = os.path.join(path, 'csv/jester-v1-test.csv')
+        src = 'csv/jester-v1-test.csv'
         des = os.path.join(path, 'jester-v1-test.txt')
     else:
         raise ValueError('Invalid mode!')
@@ -47,9 +47,9 @@ def gen_annotation(
     print('Generate annotation file successfully!')
     
 def main():
-    # gen_label()
-    # gen_annotation(mode = 'train')
-    # gen_annotation(mode = 'val')
+    gen_label()
+    gen_annotation(mode = 'train')
+    gen_annotation(mode = 'val')
     gen_annotation(mode = 'test')
     
 if __name__ == '__main__':
