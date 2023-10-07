@@ -7,7 +7,7 @@
 import os 
 from tqdm import tqdm 
 
-def new_name(target_dir): 
+def new_name(target_dir):
     fileEx = ".jpg"
 
     files = sorted([file_ for file_ in os.listdir(target_dir) if file_.endswith(fileEx)])
