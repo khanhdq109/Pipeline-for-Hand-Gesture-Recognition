@@ -10,7 +10,7 @@ def gen_label(
             for line in fcsv:
                 line = line.strip()
                 ftxt.write(line + '\n')
-    print('Generate label file successfully!')
+    print('Generate label file successfully!!!')
     
 def gen_annotation(
     path = '../../datasets/JESTER-V1/annotations',
@@ -18,12 +18,15 @@ def gen_annotation(
 ):
     # Choose mode
     if mode == 'train':
+        print('Generating train file...')
         src = 'csv/jester-v1-train.csv'
         des = os.path.join(path, 'jester-v1-train.txt')
     elif mode == 'val':
+        print('Generating val file...')
         src = 'csv/jester-v1-validation.csv'
         des = os.path.join(path, 'jester-v1-validation.txt')
     elif mode == 'test':
+        print('Generating test file...')
         src = 'csv/jester-v1-test.csv'
         des = os.path.join(path, 'jester-v1-test.txt')
     else:
@@ -34,7 +37,6 @@ def gen_annotation(
         for line in f:
             label_list.append(line.strip())
     # Generate annotation file
-    print('Generating annotation file...')
     with open(src, 'r') as fcsv:
         with open(des, 'w') as ftxt:
             for line in fcsv:
@@ -44,7 +46,7 @@ def gen_annotation(
                     ftxt.write(line[0] + ' ' + str(label_list.index(line[1])) + '\n')
                 elif mode == 'test':
                     ftxt.write(line + '\n')
-    print('Generate annotation file successfully!')
+    print('Generate ' + mode + ' successfully!!!')
     
 def main():
     gen_label()
@@ -53,5 +55,9 @@ def main():
     gen_annotation(mode = 'test')
     
 if __name__ == '__main__':
+    print('\nStarting unzip_multithread.py')
+    
     main()
+    
+    print('Completely')
             

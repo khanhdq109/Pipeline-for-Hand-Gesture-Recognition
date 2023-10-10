@@ -26,5 +26,9 @@ def main():
         new_name(target_path)
 
 if __name__ == '__main__':
+    print('\nStarting change_name.py')
+    
     main()
+    
+    print('Completely!!!')
     

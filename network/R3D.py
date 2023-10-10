@@ -116,7 +116,6 @@ class ResNet(nn.Module):
     ):
         super(ResNet, self).__init__()
         
-        # block_inplanes default: [64, 128, 256, 512]
         block_inplanes = [int(x * widen_factor) for x in block_inplanes]
         
         self.in_planes = block_inplanes[0]
@@ -180,7 +179,8 @@ class ResNet(nn.Module):
             elif isinstance(m, nn.BatchNorm3d):
                 nn.init.constant_(m.weight, 1)
                 nn.init.constant_(m.bias, 0)
-                
+         
+    # Downsample input x and zero padding before adding it with out (BasicBlock and Bottleneck)    
     def _downsample_basic_block(self, x, planes, stride):
         out = F.avg_pool3d(x, kernel_size = 1, stride = stride)
         zero_pads = torch.zeros(
@@ -238,14 +238,14 @@ class ResNet(nn.Module):
         return x
     
 def generate_model(model_depth, **kwargs):
-    assert model_depth in [10, 18, 34, 50, 101, 152, 200]
+    assert model_depth in [10, 18, 34, 50, 101, 152]
     
     if model_depth == 10:
         model = ResNet(
-            BasicBlock,
-            [1, 1, 1, 1],
-            get_inplanes(), 
-            **kwargs
+            BasicBlock, # block
+            [1, 1, 1, 1], # layers
+            get_inplanes(), # block_inplanes: [64, 128, 256, 512]
+            **kwargs # others
         )
     elif model_depth == 18:
         model = ResNet(
@@ -287,16 +287,17 @@ def generate_model(model_depth, **kwargs):
 
 def main():
     model = generate_model(
-        101,
+        50,
         n_input_channels = 3,
         conv1_t_size = 7,
         conv1_t_stride = 1,
         no_max_pool = False,
         widen_factor = 1.0,
-        n_classes = 27
+        n_classes = 28
     )
 
     print(model)
     
 if __name__ == '__main__':
     main()
+    
