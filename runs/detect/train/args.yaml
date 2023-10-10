@@ -2,7 +2,7 @@ task: detect
 mode: train
 model: model/detect/v8n_50.pt
 data: /root/Hand_Gesture/datasets/HAGRID_YOLO-V1/hagrid.yaml
-epochs: 10
+epochs: 50
 patience: 50
 batch: 16
 imgsz:
@@ -68,7 +68,7 @@ simplify: false
 opset: null
 workspace: 4
 nms: false
-lr0: 0.001
+lr0: 0.0005
 lrf: 0.01
 momentum: 0.937
 weight_decay: 0.0005

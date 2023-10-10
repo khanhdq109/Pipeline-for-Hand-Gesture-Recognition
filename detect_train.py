@@ -9,8 +9,8 @@ model = YOLO('model/detect/v8n_50.pt')
 # Start training
 model.train(
     task = 'detect',
-    data = dataset, 
+    data = dataset,
     imgsz = (640, 480),
-    epochs = 10,
-    lr0 = 0.001,
+    epochs = 50,
+    lr0 = 0.0005,
 )
