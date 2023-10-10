@@ -1,7 +1,7 @@
 task: detect
 mode: train
-model: model/detect/v8n_20.pt
-data: D:\Khanh\Others\Hand_Gesture\datasets\HAGRID_YOLO\hagrid.yaml
+model: model/detect/v8n_50.pt
+data: /root/Hand_Gesture/datasets/HAGRID_YOLO-V1/hagrid.yaml
 epochs: 10
 patience: 50
 batch: 16
