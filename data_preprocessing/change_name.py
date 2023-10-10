@@ -4,7 +4,7 @@
     Align the names in sequential.
     (i.e) 00001.jpg, 00003.jpg, 00004.jpg -> 00001.jpg, 00002.jpg, 00003.jpg
 """
-import os 
+import os
 from tqdm import tqdm 
 
 def new_name(target_dir):

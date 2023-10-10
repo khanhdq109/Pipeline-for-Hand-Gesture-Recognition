@@ -43,7 +43,7 @@ def pred_image(img_path, conf_thres = 0.25, model = 'model/v8n_10.pt'):
     cv2.imshow('Image', image)
     cv2.waitKey()
 
-def pred_video(video_path, conf_thres = 0.25, model = 'model/v8n_10.pt'):
+def pred_video(video_path, conf_thres = 0.25, model = 'model/detect/v8n_20.pt'):
     # Random a video
     video_path = os.path.join(video_path, random.choice(os.listdir(video_path)))
     video_path = os.path.join(video_path, random.choice(os.listdir(video_path)))
@@ -97,7 +97,7 @@ def main(mode = 'image'):
     if mode == 'image':
         pred_image(img_val_path, conf_thres = 0.3, model = 'model/v8n_20.pt')
     elif mode == 'video':
-        pred_video(vid_val_path, conf_thres = 0.25, model = 'model/v8n_10.pt')
+        pred_video(vid_val_path, conf_thres = 0.25, model = 'model/v8n_20.pt')
     else:
         print('Invalid mode!')
 
