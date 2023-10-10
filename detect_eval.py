@@ -91,13 +91,13 @@ def pred_video(video_path, conf_thres = 0.25, model = 'model/detect/v8n_20.pt'):
     cv2.destroyAllWindows()
 
 def main(mode = 'image'):
-    img_val_path = 'D:\Khanh\Others\Hand_Gesture\datasets\VinAI_INTERNAL\exp_20230623_recorded_frames\images'
-    vid_val_path = 'D:\Khanh\Others\Hand_Gesture\datasets\VinAI_INTERNAL\exp_20230623_recorded_videos'
+    img_val_path = '..\datasets\VinAI_INTERNAL\exp_20230623_recorded_frames\images'
+    vid_val_path = '..\datasets\VinAI_INTERNAL\exp_20230623_recorded_videos'
     
     if mode == 'image':
-        pred_image(img_val_path, conf_thres = 0.3, model = 'model/v8n_20.pt')
+        pred_image(img_val_path, conf_thres = 0.3, model = 'model/detect/v8n_20.pt')
     elif mode == 'video':
-        pred_video(vid_val_path, conf_thres = 0.25, model = 'model/v8n_20.pt')
+        pred_video(vid_val_path, conf_thres = 0.25, model = 'model/detect/v8n_60.pt')
     else:
         print('Invalid mode!')
 
