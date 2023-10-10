@@ -1,10 +1,10 @@
 from ultralytics import YOLO
 
 # Dataset
-dataset = 'D:\Khanh\Others\Hand_Gesture\datasets\HAGRID_YOLO\hagrid.yaml'
+dataset = '/root/Hand_Gesture/datasets/HAGRID_YOLO-V1/hagrid.yaml'
 
 # Load model
-model = YOLO('model/v8n_20.pt')
+model = YOLO('model/detect/v8n_30.pt')
 
 # Start training
 model.train(
