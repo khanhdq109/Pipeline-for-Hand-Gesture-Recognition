@@ -1,6 +1,6 @@
 task: detect
 mode: train
-model: model/detect/v8n_50.pt
+model: yolov8m.pt
 data: /root/Hand_Gesture/datasets/HAGRID_YOLO-V1/hagrid.yaml
 epochs: 50
 patience: 50
@@ -97,4 +97,4 @@ mixup: 0.0
 copy_paste: 0.0
 cfg: null
 tracker: botsort.yaml
-save_dir: runs/detect/train
+save_dir: runs/detect/train2

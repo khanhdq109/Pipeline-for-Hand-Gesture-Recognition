@@ -1,5 +1,6 @@
 import os
 import cv2
+from PIL import Image
 
 import torch
 from torch.utils.data import Dataset, DataLoader
@@ -38,7 +39,11 @@ class JesterV1Dataset(Dataset):
         frames, label = self.load_video_data(idx)
         
         if self.transform:
-            frames = self.transform(frames)
+            frames = [self.transform(frame) for frame in frames] # Apply the transform to each frame
+            
+        print(type(frames))
+        print(len(frames))
+        print(frames[0].shape)
 
         return frames, label
     
@@ -63,4 +68,34 @@ class JesterV1Dataset(Dataset):
             frames.append(frame)
             
         return frames, label
+    
+def main():
+    # Define data transforms
+    data_transforms = transforms.Compose([
+        transforms.Resize((112, 112)),
+        transforms.ToTensor(),
+        transforms.Normalize(
+            mean = [0.485, 0.456, 0.406],
+            std = [0.229, 0.224, 0.225]
+        ), # --> Subtracts the mean values and then divides by std for each color channel
+    ])
+    
+    # Create dataset instance
+    train_dataset = JesterV1Dataset(
+        root_dir = '../datasets/JESTER-V1',
+        annotation_file = '../datasets/JESTER-V1/annotations/jester-v1-train.txt',
+        num_frames = 30,
+        transform = data_transforms
+    )
+    
+    # Create a DataLoader instance
+    batch_size = 8
+    data_loader = DataLoader(
+        train_dataset,
+        batch_size = batch_size,
+        shuffle = False
+    )
+
+if __name__ == '__main__':
+    main()
     
