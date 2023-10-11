@@ -4,7 +4,7 @@ from ultralytics import YOLO
 dataset = '/root/Hand_Gesture/datasets/HAGRID_YOLO-V1/hagrid.yaml'
 
 # Load model
-model = YOLO('model/detect/v8n_50.pt')
+model = YOLO('yolov8m.pt')
 
 # Start training
 model.train(
