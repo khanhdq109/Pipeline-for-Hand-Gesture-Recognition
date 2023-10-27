@@ -1,100 +1,125 @@
 import os
-import cv2
-from PIL import Image
+from skimage import io
 
 import torch
 from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms
 
-class JesterV1Dataset(Dataset):
-    def __init__(self, 
-                 root_dir, annotation_file, 
-                 num_frames = 16,
-                 transform = None
-        ):
+import warnings
+warnings.filterwarnings("ignore", message = "The default value of the antialias parameter of all the resizing transforms*")
+
+class JesterV1(Dataset):
+    def __init__(self, data_dir, num_frames = 30, transform = None, mode = 'train'):
         """
-        Args:
-            root_dir (str): Directory with all the data
-            annotation_file (str): Annotation file name
-            num_frames (int): Number of frames in each video
-            transform (callable, optional): Optional transform to be applied on a sample
+            data_dir: directory containing the data
+            labels_file: file containing the labels
+            num_frames: number of frames to consider for each video
+            transform: transformations to be applied on the data
         """
-        self.root_dir = root_dir
-        self.annotation_file = os.path.join(os.path.join(root_dir, 'annotations'), annotation_file)
+        if mode == 'train':
+            annotations_file = os.path.join(data_dir, 'annotations\jester-v1-train.txt')
+        elif mode == 'val':
+            annotations_file = os.path.join(data_dir, 'annotations\jester-v1-validation.txt')
+        else:
+            raise ValueError('Invalid mode')
+        
+        self.data_dir = data_dir
+        self.annotations = self.load_annotations(annotations_file)
         self.num_frames = num_frames
         self.transform = transform
-        
-        # Load annotation file
-        with open(self.annotation_file, 'r') as f:
-            self.annotations = f.readlines()
-            
+    
     def __len__(self):
         return len(self.annotations)
     
     def __getitem__(self, idx):
         if torch.is_tensor(idx):
             idx = idx.tolist()
-            
-        # Load video frames and label
-        frames, label = self.load_video_data(idx)
         
+        video_path = os.path.join(self.data_dir, 'images')
+        video_path = os.path.join(video_path, str(self.annotations[idx][0]))
+        # Load frames and label
+        frames = self.load_frames(video_path)
+        label = self.annotations[idx][1]
+        
+        # print(type(frames[0]))
+        
+        # Apply transformations
         if self.transform:
-            frames = [self.transform(frame) for frame in frames] # Apply the transform to each frame
-            
-        print(type(frames))
-        print(len(frames))
-        print(frames[0].shape)
-
+            frames = [self.transform(frame) for frame in frames]
+        
+        # Stack frames into tensor (C x T x H x W)
+        frames = torch.stack(frames, dim = 0) # (T x C x H x W)
+        frames = frames.permute(1, 0, 2, 3) # (C x T x H x W)
+        
         return frames, label
     
-    def load_video_data(self, idx):
-        videos = os.path.join(self.root_dir, 'images')
-        # Get video path and label
-        video_path = os.path.join(videos, self.annotations[idx].split()[0])
-        label = int(self.annotations[idx].split()[1])
+    def load_annotations(self, annotations_file):
+        """
+            Load file names and labels
+        """
+        annotations = []
+        with open(annotations_file, 'r') as f:
+            for line in f:
+                line = line.strip()
+                if line:
+                    tmp = line.split()
+                    annotations.append((int(tmp[0]), int(tmp[1])))
         
-        # Get list of all frames in the video directory
-        total_frames = os.listdir(video_path)
-        total_frames.sort()
-        
-        # Load frames from the video directory
-        frames = []
-        num_total_frames = len(total_frames)
-        start = num_total_frames // 2 - self.num_frames // 2
+        return annotations
+    
+    def load_frames(self, video_path):
+        """
+            Load frames from folder
+        """
+        frame_paths = os.listdir(video_path)
+        frame_paths.sort()
+        total_nums_frames = len(frame_paths)
+        start = total_nums_frames // 2 - self.num_frames // 2
         end = start + self.num_frames
-        for frame_num in range(start, end):
-            frame = cv2.imread(os.path.join(video_path, total_frames[frame_num]))
-            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        
+        frames = []
+        for i in range(start, end):
+            frame_path = os.path.join(video_path, frame_paths[i])
+            frame = io.imread(frame_path)
             frames.append(frame)
-            
-        return frames, label
+       
+        return frames
     
 def main():
-    # Define data transforms
-    data_transforms = transforms.Compose([
-        transforms.Resize((112, 112)),
+    # Define dataset
+    data_dir = 'D:\Khanh\Others\Hand_Gesture\datasets\JESTER-V1'
+    batch_size = 8
+    
+    # Define transformations
+    transform = transforms.Compose([
         transforms.ToTensor(),
+        transforms.Resize((96, 96)),
         transforms.Normalize(
             mean = [0.485, 0.456, 0.406],
             std = [0.229, 0.224, 0.225]
-        ), # --> Subtracts the mean values and then divides by std for each color channel
+        )
     ])
     
-    # Create dataset instance
-    train_dataset = JesterV1Dataset(
-        root_dir = '../datasets/JESTER-V1',
-        annotation_file = '../datasets/JESTER-V1/annotations/jester-v1-train.txt',
+    # Create an instance of the dataset
+    dataset = JesterV1(
+        data_dir = data_dir,
         num_frames = 30,
-        transform = data_transforms
+        transform = transform,
+        mode = 'train'
     )
     
-    # Create a DataLoader instance
-    batch_size = 8
-    data_loader = DataLoader(
-        train_dataset,
-        batch_size = batch_size,
-        shuffle = False
-    )
+    # Create a DataLoader
+    data_loader = DataLoader(dataset, batch_size = batch_size, shuffle = False)
+    
+    # Length of DataLoader
+    print("Number of batches:", len(data_loader))
+    # Inspect a batch
+    for frames, labels in data_loader:
+        print("Shape of frames tensor:", frames.shape)
+        print("Shape of labels tensor:", labels.shape)
+        break
+    # Length of Dataset
+    print("Number of samples:", len(dataset))
 
 if __name__ == '__main__':
     main()
