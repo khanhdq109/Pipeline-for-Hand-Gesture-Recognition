@@ -1,6 +1,7 @@
 """
     Unzip a large .zip file
 """
+import sys
 from pathlib import Path 
 from zipfile import ZipFile
 from concurrent.futures import ThreadPoolExecutor
@@ -40,6 +41,10 @@ def main(src_path = '../../datasets/JESTER-V1/images/20bn-jester-v1-videos.zip',
                 _ = exe.submit(unzip_files, zipObj, filenames, loc_path)
 
 if __name__ == '__main__':
+    # Get argument
+    arg = sys.argv[1]
+    arg = str.upper(arg)
+    
     print('Starting unzip_multithread.py')
     
     # HAGRID_YOLO-V1
@@ -50,8 +55,17 @@ if __name__ == '__main__':
     src_path_jester = '../../datasets/JESTER-V1/images/20bn-jester-v1-videos.zip'
     loc_path_jester = '../../datasets/JESTER-V1/images'
     
-    main(
-        src_path = src_path_jester,
-        loc_path = loc_path_jester
-    )
-    print('Completely!!!')
+    if arg == 'JESTER':
+        main(
+            src_path = src_path_jester,
+            loc_path = loc_path_jester
+        )
+        print('Completely!!!')
+    elif arg == 'HAGRID':
+        main(
+            src_path = src_path_hagrid,
+            loc_path = loc_path_hagrid
+        )
+        print('Completely!!!')
+    else:
+        raise ValueError('Invalid mode!')
