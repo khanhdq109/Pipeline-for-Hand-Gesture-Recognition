@@ -17,9 +17,9 @@ class JesterV1(Dataset):
             transform: transformations to be applied on the data
         """
         if mode == 'train':
-            annotations_file = os.path.join(data_dir, 'annotations\jester-v1-train.txt')
+            annotations_file = os.path.join(data_dir, 'annotations/jester-v1-train.txt')
         elif mode == 'val':
-            annotations_file = os.path.join(data_dir, 'annotations\jester-v1-validation.txt')
+            annotations_file = os.path.join(data_dir, 'annotations/jester-v1-validation.txt')
         else:
             raise ValueError('Invalid mode')
         
@@ -74,8 +74,8 @@ class JesterV1(Dataset):
         frame_paths = os.listdir(video_path)
         frame_paths.sort()
         total_nums_frames = len(frame_paths)
-        start = total_nums_frames // 2 - self.num_frames // 2
-        end = start + self.num_frames
+        start = max(0, total_nums_frames // 2 - self.num_frames // 2)
+        end = min(total_nums_frames, start + self.num_frames)
         
         frames = []
         for i in range(start, end):
