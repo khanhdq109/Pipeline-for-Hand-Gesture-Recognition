@@ -237,7 +237,7 @@ class ResNet(nn.Module):
         
         return x
     
-def generate_model(model_depth, **kwargs):
+def R3D(model_depth, **kwargs):
     assert model_depth in [10, 18, 34, 50, 101, 152]
     
     if model_depth == 10:
@@ -286,7 +286,7 @@ def generate_model(model_depth, **kwargs):
     return model
 
 def main():
-    model = generate_model(
+    model = R3D(
         50,
         n_input_channels = 3,
         conv1_t_size = 7,

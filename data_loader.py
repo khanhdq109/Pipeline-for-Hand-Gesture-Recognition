@@ -6,7 +6,7 @@ from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms
 
 import warnings
-warnings.filterwarnings("ignore", message = "The default value of the antialias parameter of all the resizing transforms*")
+warnings.filterwarnings('ignore', message = 'The default value of the antialias parameter of all the resizing transforms*')
 
 class JesterV1(Dataset):
     def __init__(self, data_dir, num_frames = 30, transform = None, mode = 'train'):
@@ -119,7 +119,7 @@ def main():
         print("Shape of labels tensor:", labels.shape)
         break
     # Length of Dataset
-    print("Number of samples:", len(dataset))
+    print("Number of samples:", dataset.__len__())
 
 if __name__ == '__main__':
     main()
