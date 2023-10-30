@@ -9,19 +9,27 @@ import warnings
 warnings.filterwarnings('ignore', message = 'The default value of the antialias parameter of all the resizing transforms*')
 
 class JesterV1(Dataset):
-    def __init__(self, data_dir, num_frames = 30, transform = None, mode = 'train'):
+    def __init__(self, data_dir, num_frames = 30, transform = None, mode = 'train', small = False):
         """
             data_dir: directory containing the data
             labels_file: file containing the labels
             num_frames: number of frames to consider for each video
             transform: transformations to be applied on the data
         """
-        if mode == 'train':
-            annotations_file = os.path.join(data_dir, 'annotations/jester-v1-train.txt')
-        elif mode == 'val':
-            annotations_file = os.path.join(data_dir, 'annotations/jester-v1-validation.txt')
+        if not small:
+            if mode == 'train':
+                annotations_file = os.path.join(data_dir, 'annotations/jester-v1-train.txt')
+            elif mode == 'val':
+                annotations_file = os.path.join(data_dir, 'annotations/jester-v1-validation.txt')
+            else:
+                raise ValueError('Invalid mode')
         else:
-            raise ValueError('Invalid mode')
+            if mode == 'train':
+                annotations_file = os.path.join(data_dir, 'annotations/jester-v1-train-small.txt')
+            elif mode == 'val':
+                annotations_file = os.path.join(data_dir, 'annotations/jester-v1-validation-small.txt')
+            else:
+                raise ValueError('Invalid mode')
         
         self.data_dir = data_dir
         self.annotations = self.load_annotations(annotations_file)
@@ -105,7 +113,8 @@ def main():
         data_dir = data_dir,
         num_frames = 30,
         transform = transform,
-        mode = 'train'
+        mode = 'train',
+        small = True
     )
     
     # Create a DataLoader

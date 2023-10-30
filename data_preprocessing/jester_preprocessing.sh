@@ -8,3 +8,5 @@ python unzip_multithread.py JESTER
 python change_name.py
 # Generate annotation files
 python gen_annotation.py
+# Create small version of dataset
+python jester-v1-small.py
