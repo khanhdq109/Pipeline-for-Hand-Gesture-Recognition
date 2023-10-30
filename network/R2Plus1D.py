@@ -7,13 +7,23 @@ from functools import partial
 def get_inplanes():
     return [64, 128, 256, 512]
 
-def conv3x3x3(in_planes, out_planes, stride = 1):
+def conv1x3x3(in_planes, mid_planes, stride = 1):
     return nn.Conv3d(
         in_planes,
-        out_planes,
-        kernel_size = 3,
-        stride = stride,
-        padding = 1,
+        mid_planes,
+        kernel_size = (1, 3, 3),
+        stride = (1, stride, stride),
+        padding = (0, 1, 1)
+        bias = False
+    )
+    
+def conv3x1x1(mid_planes, planes, stride = 1):
+    return nn.Conv3d(
+        mid_planes,
+        planes,
+        kernel_size = (3, 1, 1),
+        stride = (stride, 1, 1),
+        padding = (1, 0, 0),
         bias = False
     )
     
@@ -32,33 +42,7 @@ class BasicBlock(nn.Module):
     def __init__(self, in_planes, planes, stride = 1, downsample = None):
         super().__init__()
         
-        self.conv1 = conv3x3x3(in_planes, planes, stride) 
-        self.bn1 = nn.BatchNorm3d(planes)
-        self.relu = nn.ReLU(inplace = True)
-        
-        self.conv2 = conv3x3x3(planes, planes)
-        self.bn2 = nn.BatchNorm3d(planes)
-        
-        self.stride = stride
-        self.downsample = downsample
-        
-    def forward(self, x):
-        residual = x
-        
-        out = self.conv1(x)
-        out = self.bn1(out)
-        out = self.relu(out)
-        
-        out = self.conv2(out)
-        out = self.bn2(out)
-        
-        if self.downsample is not None:
-            residual = self.downsample(x)
-            
-        out += residual
-        out = self.relu(out)
-        
-        return out
+        n_3d_parame
     
 class Bottleneck(nn.Module):
     expansion = 4
@@ -114,7 +98,7 @@ class ResNet(nn.Module):
         widen_factor = 1.0, # widen factor
         n_classes = 400 # number of classes
     ):
-        super().__init__()
+        super(ResNet, self).__init__()
         
         block_inplanes = [int(x * widen_factor) for x in block_inplanes]
         

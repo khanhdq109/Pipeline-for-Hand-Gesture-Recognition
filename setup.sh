@@ -16,7 +16,7 @@ sudo ldconfig
 ls -l /usr/lib/x86_64-linux-gnu/libGL.so.1
 
 # Setup directory
-cd ..
+cd /root/Hand_Gesture
 mkdir datasets
 cd datasets
 mkdir JESTER-V1
