@@ -22,12 +22,11 @@ cd datasets
 mkdir JESTER-V1
 cd JESTER-V1
 mkdir images annotations
-cd ../../..
 
 # Setup KAGGLE
 export KAGGLE_CONFIG_DIR=/root/Hand_Gesture/src/data_preprocessing
 chmod 600 /root/Hand_Gesture/src/data_preprocessing/kaggle.json
-cd data_preprocessing
+cd /root/Hand_Gesture/src/data_preprocessing
 
 # Download and setup JESTER-V1
 chmod +x jester_preprocessing.sh
