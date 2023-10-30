@@ -27,10 +27,10 @@ print('Selected device:', device)
 
 # Set training parameters
 num_frames = 30
-batch_size = 4
+batch_size = 1
 num_epochs = 1
 learning_rate = 0.001
-num_workers = 8 # Number of threads for data loading
+num_workers = 4 # Number of threads for data loading
 validation_interval = 1 # Perform validation every n epochs
 
 # Define dataset
@@ -51,13 +51,15 @@ train_dataset = JesterV1(
     data_dir = data_dir,
     num_frames = 30,
     transform = transform,
-    mode = 'train'
+    mode = 'train',
+    small = True
 ) # Train dataset
 val_dataset = JesterV1(
     data_dir = data_dir,
     num_frames = 30,
     transform = transform,
-    mode = 'val'
+    mode = 'val',
+    small = True
 ) # Validation dataset
 
 # Create a DataLoader
