@@ -26,7 +26,7 @@ else:
 print('Selected device:', device)
 
 # Set training parameters
-num_frames = 20
+num_frames = 30
 batch_size = 1
 num_epochs = 1
 learning_rate = 0.001
