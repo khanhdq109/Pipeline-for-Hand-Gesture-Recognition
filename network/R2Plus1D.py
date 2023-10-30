@@ -42,7 +42,30 @@ class BasicBlock(nn.Module):
     def __init__(self, in_planes, planes, stride = 1, downsample = None):
         super().__init__()
         
-        n_3d_parame
+        n_3d_parameters1 = in_planes * planes * 3 * 3 * 3
+        n_2p1d_parameters1 = in_planes * 3 * 3 + 3 * planes
+        mid_planes1 = n_3d_parameters1 // n_2p1d_parameters1
+        self.conv1_s = conv1x3x3(in_planes, mid_planes1, stride)
+        self.bn1_s = nn.BatchNorm3d(mid_planes1)
+        self.conv1_t = conv3x1x1(mid_planes1, planes, stride)
+        self.bn1_t = nn.BatchNorm3d(planes)
+        
+        n_3d_parameters2 = planes * planes * 3 * 3 * 3
+        n_2p1d_parameters2 = planes * 3 * 3 + 3 * planes
+        mid_planes2 = n_3d_parameters2 // n_2p1d_parameters2
+        self.conv2_s = conv1x3x3(planes, mid_planes2)
+        self.bn2_s = nn.BatchNorm3d(mid_planes2)
+        self.conv2_t = conv3x1x1(mid_planes2, planes)
+        self.bn2_t = nn.BatchNorm3d(planes)
+        
+        self.relu = nn.ReLU(inplace = True)
+        self.downsample = downsample
+        self.stride = stride
+        
+    def forward(self, x):
+        residual = x
+        
+        out 
     
 class Bottleneck(nn.Module):
     expansion = 4

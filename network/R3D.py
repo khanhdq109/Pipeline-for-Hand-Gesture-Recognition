@@ -79,7 +79,7 @@ class Bottleneck(nn.Module):
         self.stride = stride
         self.downsample = downsample
         
-    def foward(self, x):
+    def forward(self, x):
         residual = x
         
         out = self.conv1(x)
