@@ -6,6 +6,7 @@
 pip install ultralytics
 pip install scikit-image
 pip install kaggle
+pip install tqdm
 
 sudo apt update
 sudo apt search vim

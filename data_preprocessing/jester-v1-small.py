@@ -1,6 +1,6 @@
 import random
 
-def create_short_version(file, new_file, ratio = 0.1):
+def create_short_version(file, new_file, ratio = 0.05):
     # Open file
     with open(file, 'r') as f:
         # Read all lines
