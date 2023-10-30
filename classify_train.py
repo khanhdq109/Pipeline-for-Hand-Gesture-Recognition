@@ -27,14 +27,14 @@ print('Selected device:', device)
 
 # Set training parameters
 num_frames = 30
-batch_size = 1
-num_epochs = 10
+batch_size = 4
+num_epochs = 1
 learning_rate = 0.001
-num_workers = 4 # Number of threads for data loading
+num_workers = 8 # Number of threads for data loading
 validation_interval = 1 # Perform validation every n epochs
 
 # Define dataset
-data_dir = '..\datasets\JESTER-V1'
+data_dir = '/root/Hand_Gesture/datasets/JESTER-V1'
 
 # Define transformations
 transform = transforms.Compose([
