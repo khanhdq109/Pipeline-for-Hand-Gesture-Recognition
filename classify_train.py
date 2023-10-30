@@ -1,4 +1,4 @@
-import tqdm
+from tqdm import tqdm
 
 import torch
 import torch.nn as nn 
@@ -26,7 +26,7 @@ else:
 print('Selected device:', device)
 
 # Set training parameters
-num_frames = 30
+num_frames = 20
 batch_size = 1
 num_epochs = 1
 learning_rate = 0.001
@@ -90,48 +90,59 @@ for epoch in range(num_epochs):
     # Set the model to train mode
     model.train()
     total_loss = 0.0 # Total loss for the epoch
-    # Iterate over the train_loader
-    for frames, labels in train_loader:
-        # Move the frames and labels to device
-        frames, labels = frames.to(device), labels.to(device)
-        # Zero the parameter gradients
-        optimizer.zero_grad()
-        # Forward pass
-        outputs = model(frames)
-        # Calculate the loss
-        loss = criterion(outputs, labels)
-        # Backward pass
-        loss.backward()
-        # Update the parameters
-        optimizer.step()
-        # Add the loss to the total loss
-        total_loss += loss.item()
-    # Calculate the average loss
-    average_loss = total_loss / len(train_loader)
-    print(f"Epoch [{epoch + 1} / {num_epochs}] - Train Loss: {average_loss:.4f}")
-    
+    correct = 0
+    total = 0
+    with tqdm(total = total_train_batches, unit = 'batch') as pbar: # Initialize the progress bar
+        pbar.set_description(f'Epoch {epoch + 1} - Training')
+        for batch_idx, (frames, labels) in enumerate(train_loader):
+            # Move the frames and labels to device
+            frames, labels = frames.to(device), labels.to(device)
+            # Zero the parameter gradients
+            optimizer.zero_grad()
+            # Forward pass
+            outputs = model(frames)
+            # Calculate the loss
+            loss = criterion(outputs, labels)
+            # Backward pass
+            loss.backward()
+            # Update the parameters
+            optimizer.step()
+            # Add the loss to the total loss
+            total_loss += loss.item()
+            # Get the predictions
+            _, predictions = outputs.max(1)
+            # Update the total number of correct predictions
+            total += labels.size(0)
+            correct += (predictions == labels).sum().item()
+            # Update the progress bar
+            pbar.update(1)
+            pbar.set_postfix({'Train Loss': loss.item()}, refresh = False)
+        # Calculate the average loss
+        average_loss = total_loss / total_train_batches
+        pbar.set_postfix({'Average Loss': average_loss, 'Training Accuracy': correct / total})
+        
     # Perform validation every <validation_interval> epochs
     if (epoch + 1) % validation_interval == 0:
         # Set the model to evaluation mode
         model.eval()
         total_correct = 0
-        total_samples = 0
-        
-        with torch.no_grad():
-            for frames, labels in val_loader:
-                # Move the frames and labels to GPU
-                frames, labels = frames.to(device), labels.to(device)
-                # Forward pass
-                outputs = model(frames)
-                # Get the predictions
-                _, predictions = torch.max(outputs.data, 1)
-                # Update the total number of correct predictions
-                total_correct += (predictions == labels).sum().item()
-                # Update the total number of samples
-                total_samples += predictions.shape[0]
-        # Calculate validation accuracy
-        validation_accuracy = total_correct / total_samples
-        print(f"Validation Accuracy after {epoch + 1} epochs: {validation_accuracy:.2f}%")
+        with tqdm(total = total_val_batches, unit = 'batch') as pbar: # Initialize the progress bar
+            pbar.set_description(f'Epoch {epoch + 1} - Validation')
+            with torch.no_grad():
+                for batch_idx, (frames, labels) in enumerate(val_loader):
+                    # Move the frames and labels to GPU
+                    frames, labels = frames.to(device), labels.to(device)
+                    # Forward pass
+                    outputs = model(frames)
+                    # Get the predictions
+                    _, predictions = torch.max(outputs.data, 1)
+                    # Update the total number of correct predictions
+                    total_correct += (predictions == labels).sum().item()
+                    # Update the progress bar
+                    pbar.update(1)
+            # Calculate validation accuracy
+            validation_accuracy = total_correct / total_val_batches
+            pbar.set_postfix({'Validation Accuracy': validation_accuracy})
 
 print('Training sucessfully!!!')
 
