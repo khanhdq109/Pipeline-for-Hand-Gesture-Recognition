@@ -26,11 +26,13 @@ else:
 print('Selected device:', device)
 
 # Set training parameters
+## Data parameters
 num_frames = 30
 batch_size = 1
+num_workers = 4 # Number of threads for data loading
+## Training parameters
 num_epochs = 1
 learning_rate = 0.001
-num_workers = 4 # Number of threads for data loading
 validation_interval = 1 # Perform validation every n epochs
 
 # Define dataset
@@ -39,7 +41,7 @@ data_dir = '/root/Hand_Gesture/datasets/JESTER-V1'
 # Define transformations
 transform = transforms.Compose([
     transforms.ToTensor(),
-    transforms.Resize((96, 96)),
+    transforms.Resize((112, 112)),
     transforms.Normalize(
         mean = [0.485, 0.456, 0.406],
         std = [0.229, 0.224, 0.225]
@@ -49,17 +51,17 @@ transform = transforms.Compose([
 # Create an instance of the dataset
 train_dataset = JesterV1(
     data_dir = data_dir,
-    num_frames = 30,
+    num_frames = num_frames,
     transform = transform,
     mode = 'train',
-    small = True
+    small = False
 ) # Train dataset
 val_dataset = JesterV1(
     data_dir = data_dir,
-    num_frames = 30,
+    num_frames = num_frames,
     transform = transform,
     mode = 'val',
-    small = True
+    small = False
 ) # Validation dataset
 
 # Create a DataLoader
