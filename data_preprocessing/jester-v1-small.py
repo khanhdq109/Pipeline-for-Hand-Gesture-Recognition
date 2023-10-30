@@ -1,3 +1,4 @@
+import sys
 import random
 
 def create_short_version(file, new_file, ratio = 0.05):
@@ -15,6 +16,11 @@ def create_short_version(file, new_file, ratio = 0.05):
     print('Number of samples after: {}'.format(len(selected_lines)))
         
 def main():
+    # Get ratio
+    arg = sys.argv[1]
+    arg = str.upper(arg)
+    ratio = float(arg)
+    
     train = '/root/Hand_Gesture/datasets/JESTER-V1/annotations/jester-v1-train.txt'
     val = '/root/Hand_Gesture/datasets/JESTER-V1/annotations/jester-v1-validation.txt'
     test = '/root/Hand_Gesture/datasets/JESTER-V1/annotations/jester-v1-test.txt'
@@ -23,9 +29,9 @@ def main():
     new_val = '/root/Hand_Gesture/datasets/JESTER-V1/annotations/jester-v1-validation-small.txt'
     new_test = '/root/Hand_Gesture/datasets/JESTER-V1/annotations/jester-v1-test-small.txt'
     
-    create_short_version(train, new_train)
-    create_short_version(val, new_val)
-    create_short_version(test, new_test)
+    create_short_version(train, new_train, ratio = ratio)
+    create_short_version(val, new_val, ratio = ratio)
+    create_short_version(test, new_test, ratio = ratio)
     
 if __name__ == '__main__':
     main()
