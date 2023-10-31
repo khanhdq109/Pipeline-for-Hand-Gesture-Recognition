@@ -27,13 +27,22 @@ print('Selected device:', device)
 
 # Set training parameters
 ## Data parameters
+resize = (112, 112)
 num_frames = 30
 batch_size = 1
 num_workers = 4 # Number of threads for data loading
+small_version = False
+## Model parameters
+model_arch = 'r3d'
+block_arch = 18
+no_max_pool = True
+widen_factor = 1.0
+n_classes = 28
 ## Training parameters
-num_epochs = 1
+num_epochs = 10
 learning_rate = 0.001
-validation_interval = 1 # Perform validation every n epochs
+validation_interval = 1 # Perform validation after every n epochs
+save_interval = 1 # Save model after every n epochs
 
 # Define dataset
 data_dir = '/root/Hand_Gesture/datasets/JESTER-V1'
@@ -41,7 +50,7 @@ data_dir = '/root/Hand_Gesture/datasets/JESTER-V1'
 # Define transformations
 transform = transforms.Compose([
     transforms.ToTensor(),
-    transforms.Resize((112, 112)),
+    transforms.Resize(resize),
     transforms.Normalize(
         mean = [0.485, 0.456, 0.406],
         std = [0.229, 0.224, 0.225]
@@ -54,14 +63,14 @@ train_dataset = JesterV1(
     num_frames = num_frames,
     transform = transform,
     mode = 'train',
-    small = False
+    small = small_version
 ) # Train dataset
 val_dataset = JesterV1(
     data_dir = data_dir,
     num_frames = num_frames,
     transform = transform,
     mode = 'val',
-    small = False
+    small = small_version
 ) # Validation dataset
 
 # Create a DataLoader
@@ -70,13 +79,13 @@ val_loader = DataLoader(val_dataset, batch_size = batch_size, shuffle = True, nu
 
 # Define model
 model = R3D(
-    18,
+    block_arch,
     n_input_channels = 3,
     conv1_t_size = 7,
     conv1_t_stride = 1,
-    no_max_pool = False,
-    widen_factor = 1.0,
-    n_classes = 28
+    no_max_pool = no_max_pool,
+    widen_factor = widen_factor,
+    n_classes = n_classes
 ).to(device)
 
 # Define loss and optimizer
@@ -145,8 +154,29 @@ for epoch in range(num_epochs):
             # Calculate validation accuracy
             validation_accuracy = total_correct / total_val_batches
             pbar.set_postfix({'Validation Accuracy': validation_accuracy})
+            
+    # Save the model
+    if (epoch + 1) % save_interval == 0:
+        # Define model name
+        if no_max_pool:
+            nmp = '_0-mp'
+        else:
+            nmp = '_1-mp'
+        name = 'model/classify/r3d-' + str(block_arch) + nmp
+        name = name + '_' + str(epoch + 1) + '-epochs'
+        name += '.pth'
+        # Save model
+        torch.save(model.state_dict(), name)
 
 print('Training sucessfully!!!')
 
-# Save the model
-torch.save(model.state_dict(), 'model/classify/r3d-18_demo.pth')
+# Save the model for the last time
+if no_max_pool:
+    nmp = '_0-mp'
+else:
+    nmp = '_1-mp'
+name = 'model/classify/r3d-' + str(block_arch) + nmp
+name = name + '_' + str(epoch + 1) + '-epochs'
+name += '.pth'
+# Save model
+torch.save(model.state_dict(), name)
