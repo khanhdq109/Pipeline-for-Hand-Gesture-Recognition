@@ -12,6 +12,9 @@ sudo apt update
 sudo apt search vim
 sudo apt install vim
 
+sudo apt update
+sudo apt install zip
+
 # Setup directory
 cd /root/Hand_Gesture
 mkdir datasets
@@ -28,5 +31,5 @@ cd /root/Hand_Gesture/src/data_preprocessing
 # Download and setup JESTER-V1
 chmod +x jester_preprocessing.sh
 ./jester_preprocessing.sh
-python jester-v1-small.py 0.1 # Create a small version of JESTER-V1
+python jester-v1-small.py 0.2 # Create a small version of JESTER-V1
 rm /root/Hand_Gesture/datasets/JESTER-V1/images/20bn-jester-v1-videos.zip

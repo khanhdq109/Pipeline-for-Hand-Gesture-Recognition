@@ -4,6 +4,7 @@ import torch
 import torch.nn as nn 
 import torch.optim as optim
 import torch.nn.functional as F
+from torch.optim.lr_scheduler import StepLR
 from torch.utils.data import DataLoader 
 from torchvision import transforms
 
@@ -41,6 +42,8 @@ n_classes = 28
 ## Training parameters
 num_epochs = 10
 learning_rate = 0.001
+decay_step = 2 # Decay the learning rate after n epochs
+gamma = 0.1 # Decay the learning rate by gamma
 validation_interval = 1 # Perform validation after every n epochs
 save_interval = 1 # Save model after every n epochs
 
@@ -92,6 +95,9 @@ model = R3D(
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr = learning_rate)
 
+# Create a learning rate scheduler
+scheduler = StepLR(optimizer, step_size = decay_step, gamma = 0.5)
+
 # Start training
 print('Start training...')
 
@@ -101,8 +107,7 @@ for epoch in range(num_epochs):
     # Set the model to train mode
     model.train()
     total_loss = 0.0 # Total loss for the epoch
-    correct = 0
-    total = 0
+    total_correct = 0
     with tqdm(total = total_train_batches, unit = 'batch') as pbar: # Initialize the progress bar
         pbar.set_description(f'Epoch {epoch + 1} - Training')
         for batch_idx, (frames, labels) in enumerate(train_loader):
@@ -123,14 +128,16 @@ for epoch in range(num_epochs):
             # Get the predictions
             _, predictions = outputs.max(1)
             # Update the total number of correct predictions
-            total += labels.size(0)
-            correct += (predictions == labels).sum().item()
+            total_correct += (predictions == labels).sum().item()
             # Update the progress bar
             pbar.update(1)
             pbar.set_postfix({'Train Loss': loss.item()}, refresh = False)
         # Calculate the average loss
         average_loss = total_loss / total_train_batches
-        pbar.set_postfix({'Average Loss': average_loss, 'Training Accuracy': correct / total})
+        training_accuracy = total_correct / total_train_batches
+        pbar.set_postfix({'Average Loss': average_loss, 'Training Accuracy': training_accuracy})
+        # Update the learning rate at the end of each epoch
+        scheduler.step()
         
     # Perform validation every <validation_interval> epochs
     if (epoch + 1) % validation_interval == 0:
@@ -146,7 +153,7 @@ for epoch in range(num_epochs):
                     # Forward pass
                     outputs = model(frames)
                     # Get the predictions
-                    _, predictions = torch.max(outputs.data, 1)
+                    _, predictions = outputs.max(1)
                     # Update the total number of correct predictions
                     total_correct += (predictions == labels).sum().item()
                     # Update the progress bar

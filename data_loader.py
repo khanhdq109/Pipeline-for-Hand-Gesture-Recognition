@@ -49,8 +49,6 @@ class JesterV1(Dataset):
         frames = self.load_frames(video_path)
         label = self.annotations[idx][1]
         
-        # print(type(frames[0]))
-        
         # Apply transformations
         if self.transform:
             frames = [self.transform(frame) for frame in frames]
