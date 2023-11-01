@@ -297,6 +297,7 @@ def main():
         n_classes = 28
     )
 
+    print(model)
     summary(model, (3, 30, 112, 112))
     
 if __name__ == '__main__':
