@@ -1,5 +1,7 @@
 import sys
+import pandas as pd
 from tqdm import tqdm
+from pathlib import Path
 
 import torch
 import torch.nn as nn 
@@ -126,6 +128,7 @@ optimizer = optim.Adam(model.parameters(), lr = learning_rate)
 scheduler = StepLR(optimizer, step_size = decay_step, gamma = 0.5)
 
 # Start training
+epochs, train_loss, train_acc, val_acc = [], [], [], [] # Define lists to store the training and validation metrics
 print('Start training...')
 
 total_train_batches = len(train_loader) # Total number of train batches
@@ -159,10 +162,15 @@ for epoch in range(num_epochs):
             # Update the progress bar
             pbar.update(1)
             pbar.set_postfix({'Train Loss': loss.item()}, refresh = False)
-        # Calculate the average loss
+        # Calculate the average loss and training accuracy
         average_loss = total_loss / total_train_batches
         training_accuracy = total_correct / total_train_batches
+        # Update the progress bar
         pbar.set_postfix({'Average Loss': average_loss, 'Training Accuracy': training_accuracy})
+        # Append the training metrics to the lists
+        epochs.append(epoch + 1)
+        train_loss.append(average_loss)
+        train_acc.append(training_accuracy)
         # Update the learning rate at the end of each epoch
         scheduler.step()
         
@@ -187,7 +195,10 @@ for epoch in range(num_epochs):
                     pbar.update(1)
             # Calculate validation accuracy
             validation_accuracy = total_correct / total_val_batches
+            # Update the progress bar
             pbar.set_postfix({'Validation Accuracy': validation_accuracy})
+            # Append the validation accuracy to the list
+            val_acc.append(validation_accuracy)
             
     # Save the model
     if (epoch + 1) % save_interval == 0:
@@ -214,3 +225,14 @@ name = name + '_' + str(epoch + 1) + '-epochs'
 name += '.pth'
 # Save model
 torch.save(model.state_dict(), name)
+
+# Save the training metrics
+Path('logs').mkdir(exist_ok = True)
+log = {
+    'epochs': epochs,
+    'train_loss': train_loss,
+    'train_acc': train_acc,
+    'val_acc': val_acc
+}
+log = pd.DataFrame(log)
+log.to_csv('logs/' + model_arch + '-' + str(block_arch) + nmp + '.csv', index = False)
