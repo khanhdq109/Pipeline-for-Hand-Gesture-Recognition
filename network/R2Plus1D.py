@@ -7,6 +7,7 @@ from functools import partial
 def get_inplanes():
     return [64, 128, 256, 512]
 
+# Spatial Convolution (2)
 def conv1x3x3(in_planes, mid_planes, stride = 1):
     return nn.Conv3d(
         in_planes,
@@ -17,6 +18,7 @@ def conv1x3x3(in_planes, mid_planes, stride = 1):
         bias = False
     )
 
+# Temporal Convolution (1)
 def conv3x1x1(mid_planes, planes, stride = 1):
     return nn.Conv3d(
         mid_planes,
@@ -44,7 +46,7 @@ class BasicBlock(nn.Module):
 
         n_3d_parameters1 = in_planes * planes * 3 * 3 * 3
         n_2p1d_parameters1 = in_planes * 3 * 3 + 3 * planes
-        mid_planes1 = n_3d_parameters1 // n_2p1d_parameters1
+        mid_planes1 = n_3d_parameters1 // n_2p1d_parameters1 # Read the paper for more details (page 4/10)
         self.conv1_s = conv1x3x3(in_planes, mid_planes1, stride)
         self.bn1_s = nn.BatchNorm3d(mid_planes1)
         self.conv1_t = conv3x1x1(mid_planes1, planes, stride)
@@ -59,8 +61,8 @@ class BasicBlock(nn.Module):
         self.bn2_t = nn.BatchNorm3d(planes)
 
         self.relu = nn.ReLU(inplace = True)
-        self.downsample = downsample
         self.stride = stride
+        self.downsample = downsample
 
     def forward(self, x):
         residual = x
@@ -137,16 +139,15 @@ class Bottleneck(nn.Module):
 class ResNet(nn.Module):
     def __init__(
         self,
-        block,
-        layers,
-        block_inplanes,
-        n_input_channels = 3,
-        conv1_t_size = 7,
-        conv1_t_stride = 1,
-        no_max_pool = False,
-        shortcut_type = 'B',
-        widen_factor = 1.0,
-        n_classes = 28
+        block, # BasicBlock or Bottleneck
+        layers, # number of blocks for each layer
+        block_inplanes, # number of input channels for each layer
+        n_input_channels = 3, # number of input channels
+        conv1_t_size = 7, # kernel size in t dim for the first conv layer
+        conv1_t_stride = 1, # stride in t dim for the first conv layer
+        no_max_pool = False, # whether to use max pool
+        widen_factor = 1.0, # widen factor
+        n_classes = 28 # number of classes
     ):
         super().__init__()
 
@@ -155,9 +156,11 @@ class ResNet(nn.Module):
         self.in_planes = block_inplanes[0]
         self.no_max_pool = no_max_pool
 
+        # First convolution
         n_3d_parameters = 3 * self.in_planes * conv1_t_size * 7 * 7
         n_2p1d_parameters = 3 * 7 * 7 + conv1_t_size * self.in_planes
         mid_planes = n_3d_parameters // n_2p1d_parameters
+        # Spatial convolution
         self.conv1_s = nn.Conv3d(
             n_input_channels,
             mid_planes,
@@ -167,43 +170,48 @@ class ResNet(nn.Module):
             bias = False
         )
         self.bn1_s = nn.BatchNorm3d(mid_planes)
+        # Temporal convolution
         self.conv1_t = nn.Conv3d(
             mid_planes,
             self.in_planes,
             kernel_size = (conv1_t_size, 1, 1),
             stride = (conv1_t_stride, 1, 1),
             padding = (conv1_t_size // 2, 0, 0),
-            bias=False
+            bias = False
         )
         self.bn1_t = nn.BatchNorm3d(self.in_planes)
         self.relu = nn.ReLU(inplace = True)
-
-        self.maxpool = nn.MaxPool3d(kernel_size = 3, stride = 2, padding = 1)
+        self.maxpool = nn.MaxPool3d(
+            kernel_size = 3, 
+            stride = 2, 
+            padding = 1
+        )
+        
+        # Layer 1
         self.layer1 = self._make_layer(
             block, 
             block_inplanes[0], 
             layers[0],
-            shortcut_type
         )
+        # Layer 2
         self.layer2 = self._make_layer(
             block,
             block_inplanes[1],
             layers[1],
-            shortcut_type,
             stride = 2
         )
+        # Layer 3
         self.layer3 = self._make_layer(
             block,
             block_inplanes[2],
             layers[2],
-            shortcut_type,
             stride = 2
         )
+        # Layer 4
         self.layer4 = self._make_layer(
             block,
             block_inplanes[3],
             layers[3],
-            shortcut_type,
             stride = 2
         )
 
@@ -221,10 +229,13 @@ class ResNet(nn.Module):
                 nn.init.constant_(m.weight, 1)
                 nn.init.constant_(m.bias, 0)
 
+    # Downsample input x and zero padding before adding it with out (BasicBlock and Bottleneck)
     def _downsample_basic_block(self, x, planes, stride):
-        out = F.avg_pool3d(x, kernel_size = 1, stride=stride)
-        zero_pads = torch.zeros(out.size(0), planes - out.size(1), out.size(2),
-                                out.size(3), out.size(4))
+        out = F.avg_pool3d(x, kernel_size = 1, stride = stride)
+        zero_pads = torch.zeros(
+            out.size(0), planes - out.size(1), 
+            out.size(2), out.size(3), out.size(4)
+        )
         if isinstance(out.data, torch.cuda.FloatTensor):
             zero_pads = zero_pads.cuda()
 
@@ -235,18 +246,11 @@ class ResNet(nn.Module):
     def _make_layer(self, block, planes, blocks, shortcut_type, stride=1):
         downsample = None
         if stride != 1 or self.in_planes != planes * block.expansion:
-            if shortcut_type == 'A':
-                downsample = partial(self._downsample_basic_block,
-                                     planes = planes * block.expansion,
-                                     stride = stride)
-            else:
-                downsample = nn.Sequential(
-                    conv1x1x1(
-                        self.in_planes, 
-                        planes * block.expansion, 
-                        stride),
-                    nn.BatchNorm3d(planes * block.expansion)
-                )
+            downsample = partial(
+                self._downsample_basic_block,
+                planes = planes * block.expansion,
+                stride = stride
+            )
 
         layers = []
         layers.append(
@@ -270,7 +274,6 @@ class ResNet(nn.Module):
         x = self.conv1_t(x)
         x = self.bn1_t(x)
         x = self.relu(x)
-
         if not self.no_max_pool:
             x = self.maxpool(x)
 
@@ -286,16 +289,15 @@ class ResNet(nn.Module):
 
         return x
 
-
 def R2Plus1D(model_depth, **kwargs):
     assert model_depth in [10, 18, 34, 50, 101, 152]
 
     if model_depth == 10:
         model = ResNet(
-            BasicBlock, 
-            [1, 1, 1, 1], 
-            get_inplanes(), 
-            **kwargs
+            BasicBlock, # block
+            [1, 1, 1, 1], # layers
+            get_inplanes(), # block_inplanes: [64, 128, 256, 512]
+            **kwargs # others
         )
     elif model_depth == 18:
         model = ResNet(
@@ -334,3 +336,20 @@ def R2Plus1D(model_depth, **kwargs):
         )
 
     return model
+
+def main():
+    model = R2Plus1D(
+        18,
+        n_input_channels = 3,
+        conv1_t_size = 7,
+        conv1_t_stride = 1,
+        no_max_pool = True,
+        widen_factor = 1.0,
+        n_classes = 28
+    )
+    
+    print(model)
+    
+if __name__ == '__main__':
+    main()
+    

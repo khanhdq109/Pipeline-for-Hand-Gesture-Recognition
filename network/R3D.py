@@ -108,7 +108,7 @@ class ResNet(nn.Module):
         layers, # number of blocks for each layer
         block_inplanes, # number of input channels for each layer
         n_input_channels = 3, # number of input channels
-        conv1_t_size = 7, # kernel size in t for the first conv layer
+        conv1_t_size = 7, # kernel size in t dim for the first conv layer
         conv1_t_stride = 1, # stride in t for the first conv layer
         no_max_pool = False, # whether to use max pool
         widen_factor = 1.0, # widen factor
@@ -287,7 +287,7 @@ def R3D(model_depth, **kwargs):
 
 def main():
     model = R3D(
-        50,
+        18,
         n_input_channels = 3,
         conv1_t_size = 7,
         conv1_t_stride = 1,
