@@ -7,6 +7,7 @@ pip install kaggle
 pip install numpy pandas matplotlib tqdm
 pip install opencv-python
 pip install scikit-image
+pip install torchsummary
 
 sudo apt update
 sudo apt search vim
@@ -33,3 +34,4 @@ cd /root/Hand_Gesture/source/data_preprocessing
 # Download and setup JESTER-V1
 chmod +x jester_preprocessing.sh
 ./jester_preprocessing.sh
+rm /root/Hand_Gesture/datasets/20bn-jester-v1-videos.zip

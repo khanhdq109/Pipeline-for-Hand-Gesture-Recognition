@@ -1,4 +1,3 @@
-import sys
 import random
 
 def create_short_version(file, new_file, ratio = 0.05):
