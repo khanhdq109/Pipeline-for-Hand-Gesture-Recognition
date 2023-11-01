@@ -48,8 +48,8 @@ batch_size = 1
 num_workers = 4 # Number of threads for data loading
 small_version = False
 ## Model parameters
-model_arch = 'r3d'
-block_arch = 18
+model_arch = arg1
+block_arch = arg2
 no_max_pool = True
 widen_factor = 1.0
 n_classes = 28
@@ -196,7 +196,7 @@ for epoch in range(num_epochs):
             nmp = '_0-mp'
         else:
             nmp = '_1-mp'
-        name = 'model/classify/r3d-' + str(block_arch) + nmp
+        name = 'root/Hand_Gesture/models/classify/' + model_arch + '-' + str(block_arch) + nmp
         name = name + '_' + str(epoch + 1) + '-epochs'
         name += '.pth'
         # Save model
@@ -209,7 +209,7 @@ if no_max_pool:
     nmp = '_0-mp'
 else:
     nmp = '_1-mp'
-name = 'model/classify/r3d-' + str(block_arch) + nmp
+name = 'root/Hand_Gesture/models/classify/' + model_arch + '-' + str(block_arch) + nmp
 name = name + '_' + str(epoch + 1) + '-epochs'
 name += '.pth'
 # Save model
