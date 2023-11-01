@@ -13,11 +13,11 @@ def unzip_files(zipObj, filenames, path):
         # unzip the file 
         zipObj.extract(file, path)
 
-        # report progress
-        print(f".unzipped {file}")
-
 # unzip a large number of files 
-def main(src_path = '../../datasets/JESTER-V1/images/20bn-jester-v1-videos.zip', loc_path = '../../datasets/JESTER-V1/images'):
+def main(
+    src_path = '/root/Hand_Gesture/datasets/JESTER-V1/images/20bn-jester-v1-videos.zip', 
+    loc_path = '/root/Hand_Gesture/datasets/JESTER-V1/images'
+):
     Path(loc_path).mkdir(exist_ok = True)
 
     # == open the zip file == # 
@@ -48,24 +48,24 @@ if __name__ == '__main__':
     print('Starting unzip_multithread.py')
     
     # HAGRID_YOLO-V1
-    src_path_hagrid = '../../datasets/hagrid-yolo-v1.zip'
-    loc_path_hagrid = '../../datasets'
+    src_path_hagrid = '/root/Hand_Gesture/datasets/hagrid-yolo-v1.zip'
+    loc_path_hagrid = '/root/Hand_Gesture/datasets'
     
     # JESTER-V1
-    src_path_jester = '../../datasets/JESTER-V1/images/20bn-jester-v1-videos.zip'
-    loc_path_jester = '../../datasets/JESTER-V1/images'
+    src_path_jester = '/root/Hand_Gesture/datasets/JESTER-V1/images/20bn-jester-v1-videos.zip'
+    loc_path_jester = '/root/Hand_Gesture/datasets/JESTER-V1/images'
     
     if arg == 'JESTER':
         main(
             src_path = src_path_jester,
             loc_path = loc_path_jester
         )
-        print('Completely!!!')
+        print('Unzip JESTER-V1 completely!!!')
     elif arg == 'HAGRID':
         main(
             src_path = src_path_hagrid,
             loc_path = loc_path_hagrid
         )
-        print('Completely!!!')
+        print('Unzip HAGRID-YOLO completely!!!')
     else:
         raise ValueError('Invalid mode!')

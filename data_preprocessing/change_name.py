@@ -17,7 +17,7 @@ def new_name(target_dir):
         os.rename(old_name, new_name)
 
 def main(): 
-    dataset_path = os.path.join('../../datasets/JESTER-V1/images')
+    dataset_path = os.path.join('/root/Hand_Gesture/datasets/JESTER-V1/images')
     
     # list of all files to rename 
     path_dirs = [os.path.join(dataset_path, dir) for dir in os.listdir(dataset_path)]
@@ -30,5 +30,5 @@ if __name__ == '__main__':
     
     main()
     
-    print('Completely!!!')
+    print('Change name completely!!!')
     

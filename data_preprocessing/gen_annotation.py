@@ -2,7 +2,7 @@ import os
 
 def gen_label(
     src = 'csv/jester-v1-labels.csv',
-    des = '../../datasets/JESTER-V1/annotations/jester-v1-labels.txt'
+    des = '/root/Hand_Gesture/datasets/JESTER-V1/annotations/jester-v1-labels.txt'
 ):
     print('Generating label file...')
     with open(src, 'r') as fcsv:
@@ -13,7 +13,7 @@ def gen_label(
     print('Generate label file successfully!!!')
     
 def gen_annotation(
-    path = '../../datasets/JESTER-V1/annotations',
+    path = '/root/Hand_Gesture/datasets/JESTER-V1/annotations',
     mode = 'train'
 ):
     # Choose mode
@@ -55,9 +55,9 @@ def main():
     gen_annotation(mode = 'test')
     
 if __name__ == '__main__':
-    print('\nStarting unzip_multithread.py')
+    print('\nStarting gen_annotation.py')
     
     main()
     
-    print('Completely')
+    print('Generate annotation completely')
             

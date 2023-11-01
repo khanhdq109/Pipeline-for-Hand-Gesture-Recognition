@@ -13,10 +13,10 @@ def main():
     # Specify the dataset you want to download (replace with the dataset name)
     if arg == 'JESTER':
         dataset_name = 'kylecloud/20bn-jester-v1-videos'
-        destination_folder = '../../datasets/JESTER-V1/images'
+        destination_folder = '/root/Hand_Gesture/datasets/JESTER-V1/images'
     elif arg == 'HAGRID':
         dataset_name = 'khnhoquc/hagrid-yolo-v1'
-        destination_folder = '../../datasets'
+        destination_folder = '/root/Hand_Gesture/datasets'
     else:
         raise ValueError('Invalid mode!')
 

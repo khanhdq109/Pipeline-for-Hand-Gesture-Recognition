@@ -33,5 +33,3 @@ cd /root/Hand_Gesture/source/data_preprocessing
 # Download and setup JESTER-V1
 chmod +x jester_preprocessing.sh
 ./jester_preprocessing.sh
-python jester-v1-small.py 0.2 # Create a small version of JESTER-V1
-rm /root/Hand_Gesture/datasets/JESTER-V1/images/20bn-jester-v1-videos.zip

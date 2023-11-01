@@ -16,10 +16,7 @@ def create_short_version(file, new_file, ratio = 0.05):
     print('Number of samples after: {}'.format(len(selected_lines)))
         
 def main():
-    # Get ratio
-    arg = sys.argv[1]
-    arg = str.upper(arg)
-    ratio = float(arg)
+    ratio = 0.2
     
     train = '/root/Hand_Gesture/datasets/JESTER-V1/annotations/jester-v1-train.txt'
     val = '/root/Hand_Gesture/datasets/JESTER-V1/annotations/jester-v1-validation.txt'
