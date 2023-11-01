@@ -1,3 +1,4 @@
+import sys
 from tqdm import tqdm
 
 import torch
@@ -10,9 +11,22 @@ from torchvision import transforms
 
 from data_loader import JesterV1
 from network.R3D import R3D
+from network.R2Plus1D import R2Plus1D
 
 import warnings
 warnings.filterwarnings('ignore', message = 'The default value of the antialias parameter of all the resizing transforms*')
+
+# Get arguments
+if len(sys.argv) >= 2:
+    arg1 = sys.argv[1] # Model architecture
+    arg1 = str.lower(arg1)
+else:
+    arg1 = 'r3d' # Default model architecture
+if len(sys.argv) >= 3:
+    arg2 = sys.argv[2] # Block architecture
+    arg2 = int(arg2)
+else:
+    arg2 = 18 # Default block architecture
 
 # Check for GPU availability
 if torch.cuda.is_available():
@@ -81,15 +95,28 @@ train_loader = DataLoader(train_dataset, batch_size = batch_size, shuffle = True
 val_loader = DataLoader(val_dataset, batch_size = batch_size, shuffle = True, num_workers = num_workers) # Validation data loader
 
 # Define model
-model = R3D(
-    block_arch,
-    n_input_channels = 3,
-    conv1_t_size = 7,
-    conv1_t_stride = 1,
-    no_max_pool = no_max_pool,
-    widen_factor = widen_factor,
-    n_classes = n_classes
-).to(device)
+if model_arch == 'r3d':
+    model = R3D(
+        block_arch,
+        n_input_channels = 3,
+        conv1_t_size = 7,
+        conv1_t_stride = 1,
+        no_max_pool = no_max_pool,
+        widen_factor = widen_factor,
+        n_classes = n_classes
+    ).to(device)
+elif model_arch == 'r2plus1d':
+    model = R2Plus1D(
+        block_arch,
+        n_input_channels = 3,
+        conv1_t_size = 7,
+        conv1_t_stride = 1,
+        no_max_pool = no_max_pool,
+        widen_factor = widen_factor,
+        n_classes = n_classes
+    )
+else:
+    raise ValueError('Invalid model architecture!')
 
 # Define loss and optimizer
 criterion = nn.CrossEntropyLoss()

@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from torchsummary import summary
 
 from functools import partial
 
@@ -243,7 +244,7 @@ class ResNet(nn.Module):
 
         return out
 
-    def _make_layer(self, block, planes, blocks, shortcut_type, stride=1):
+    def _make_layer(self, block, planes, blocks, stride = 1):
         downsample = None
         if stride != 1 or self.in_planes != planes * block.expansion:
             downsample = partial(
@@ -348,7 +349,7 @@ def main():
         n_classes = 28
     )
     
-    print(model)
+    summary(model, (3, 30, 112, 112))
     
 if __name__ == '__main__':
     main()
