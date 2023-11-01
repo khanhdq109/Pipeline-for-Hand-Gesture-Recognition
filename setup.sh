@@ -17,11 +17,13 @@ sudo apt install zip
 
 # Setup directory
 cd /root/Hand_Gesture
-mkdir datasets
+mkdir datasets models
 cd datasets
 mkdir JESTER-V1
 cd JESTER-V1
 mkdir images annotations
+cd /root/Hand_Gesture/models
+mkdir classify
 
 # Setup KAGGLE
 export KAGGLE_CONFIG_DIR=/root/Hand_Gesture/source/data_preprocessing
