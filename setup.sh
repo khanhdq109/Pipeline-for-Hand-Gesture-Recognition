@@ -17,27 +17,21 @@ sudo apt update
 sudo apt install zip
 
 # Setup directory
-# cd /root/Hand_Gesture
-cd D:/Khanh/Others/Hand_Gesture # Delete
+cd /root/Hand_Gesture
 mkdir datasets models
 cd datasets
 mkdir JESTER-V1
 cd JESTER-V1
 mkdir images annotations
-# cd /root/Hand_Gesture/models
-cd D:/Khanh/Others/Hand_Gesture/models # Delete
+cd /root/Hand_Gesture/models
 mkdir classify
 
 # Setup KAGGLE
-# export KAGGLE_CONFIG_DIR=/root/Hand_Gesture/source/data_preprocessing
-export KAGGLE_CONFIG_DIR=D:/Khanh/Others/Hand_Gesture/source/data_preprocessing # Delete
-# chmod 600 /root/Hand_Gesture/source/data_preprocessing/kaggle.json
-chmod 600 D:/Khanh/Others/Hand_Gesture/source/data_preprocessing/kaggle.json # Delete
-# cd /root/Hand_Gesture/source/data_preprocessing
-cd D:/Khanh/Others/Hand_Gesture/source/data_preprocessing # Delete
+export KAGGLE_CONFIG_DIR=/root/Hand_Gesture/source/data_preprocessing
+chmod 600 /root/Hand_Gesture/source/data_preprocessing/kaggle.json
+cd /root/Hand_Gesture/source/data_preprocessing
 
 # Download and setup JESTER-V1
 chmod +x jester_preprocessing.sh
 ./jester_preprocessing.sh
 # rm /root/Hand_Gesture/datasets/20bn-jester-v1-videos.zip
-rm D:/Khanh/Others/Hand_Gesture/datasets/20bn-jester-v1-videos.zip # Delete

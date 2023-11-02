@@ -13,8 +13,7 @@ def main():
     # Specify the dataset you want to download (replace with the dataset name)
     if arg == 'JESTER':
         dataset_name = 'kylecloud/20bn-jester-v1-videos'
-        # destination_folder = '/root/Hand_Gesture/datasets'
-        destination_folder = 'D:/Khanh/Others/Hand_Gesture/datasets' # Delete
+        destination_folder = '/root/Hand_Gesture/datasets'
     elif arg == 'HAGRID':
         dataset_name = 'khnhoquc/hagrid-yolo-v1'
         destination_folder = '/root/Hand_Gesture/datasets'
