@@ -53,7 +53,8 @@ if __name__ == '__main__':
     
     # JESTER-V1
     src_path_jester = '/root/Hand_Gesture/datasets/20bn-jester-v1-videos.zip'
-    loc_path_jester = '/root/Hand_Gesture/datasets/JESTER-V1/images'
+    # loc_path_jester = '/root/Hand_Gesture/datasets/JESTER-V1/images'
+    loc_path_jester = 'D:/Khanh/Others/Hand_Gesture/datasets/JESTER-V1/images' # Delete
     
     if arg == 'JESTER':
         main(
