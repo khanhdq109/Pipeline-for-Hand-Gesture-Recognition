@@ -58,7 +58,7 @@ n_classes = 28
 ## Training parameters
 num_epochs = 10
 learning_rate = 0.001
-decay_step = 2 # Decay the learning rate after n epochs
+decay_step = 5 # Decay the learning rate after n epochs
 gamma = 0.1 # Decay the learning rate by gamma
 validation_interval = 1 # Perform validation after every n epochs
 save_interval = 1 # Save model after every n epochs
@@ -116,7 +116,7 @@ elif model_arch == 'r2plus1d':
         no_max_pool = no_max_pool,
         widen_factor = widen_factor,
         n_classes = n_classes
-    )
+    ).to(device)
 else:
     raise ValueError('Invalid model architecture!')
 
@@ -207,7 +207,7 @@ for epoch in range(num_epochs):
             nmp = '_0-mp'
         else:
             nmp = '_1-mp'
-        name = 'root/Hand_Gesture/models/classify/' + model_arch + '-' + str(block_arch) + nmp
+        name = '/root/Hand_Gesture/models/classify/' + model_arch + '-' + str(block_arch) + nmp
         name = name + '_' + str(epoch + 1) + '-epochs'
         name += '.pth'
         # Save model
@@ -220,7 +220,7 @@ if no_max_pool:
     nmp = '_0-mp'
 else:
     nmp = '_1-mp'
-name = 'root/Hand_Gesture/models/classify/' + model_arch + '-' + str(block_arch) + nmp
+name = '/root/Hand_Gesture/models/classify/' + model_arch + '-' + str(block_arch) + nmp
 name = name + '_' + str(epoch + 1) + '-epochs'
 name += '.pth'
 # Save model
