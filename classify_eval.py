@@ -134,9 +134,9 @@ def pred_video(
         _, frame = cap.read()
         if frame is None:
             break
+        
         # Convert to RGB
         frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        
         # Apply transformations
         frame_tensor = transform(frame_rgb)
         frames.append(frame_tensor)
@@ -196,7 +196,7 @@ def pred_video(
     
 def main():
     # Define path
-    video_id = 64033
+    video_id = 106937
     video_folder = 'D:\Khanh\Others\Hand_Gesture\datasets\JESTER-V1\images'
     video_path = os.path.join(video_folder, str(video_id))
     video = os.path.join('demo\demo_input', str(video_id) + '.mp4')
