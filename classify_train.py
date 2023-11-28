@@ -18,17 +18,34 @@ from network.R2Plus1D import R2Plus1D
 import warnings
 warnings.filterwarnings('ignore', message = 'The default value of the antialias parameter of all the resizing transforms*')
 
-# Get arguments
+""" 
+    Full command to train model:
+        python classify_train.py <model_arch> <block_arch> <pre_trained>
+        
+    Example:
+        python classify_train.py r3d 18 0 --> Train R3D-18 model from scratch
+        python classify_train.py r3d 18 1 --> Train R3D-18 model from pre-trained model
+"""
+
+# Model architecture
 if len(sys.argv) >= 2:
-    arg1 = sys.argv[1] # Model architecture
+    arg1 = sys.argv[1]
     arg1 = str.lower(arg1)
 else:
-    arg1 = 'r3d' # Default model architecture
+    arg1 = 'r3d'
+# Block architecture
 if len(sys.argv) >= 3:
-    arg2 = sys.argv[2] # Block architecture
+    arg2 = sys.argv[2]
     arg2 = int(arg2)
 else:
-    arg2 = 18 # Default block architecture
+    arg2 = 18
+# Training pre-trained model model
+if len(sys.argv) >= 4:
+    arg3 = sys.argv[3]
+    if int(arg3) == 1:
+        arg3 = True
+    else:
+        arg3 = False
 
 # Check for GPU availability
 if torch.cuda.is_available():
@@ -52,6 +69,12 @@ small_version = False
 ## Model parameters
 model_arch = arg1
 block_arch = arg2
+pre_trained = arg3
+pre_trained_path = '/root/Hand_Gesture/models/classify/R3D/r3d-18_10-epochs.pth'
+if pre_trained:
+    pre_trained_epochs = int(pre_trained_path.split('_')[-1].split('-')[0])
+else:
+    pre_trained_epochs = 0
 no_max_pool = True
 widen_factor = 1.0
 n_classes = 28
@@ -120,6 +143,11 @@ elif model_arch == 'r2plus1d':
 else:
     raise ValueError('Invalid model architecture!')
 
+# Load pre-trained weights if pre_trained is True
+if pre_trained:
+    model.load_state_dict(torch.load(pre_trained_path))
+    print('Pre-trained model loaded successfully!')
+
 # Define loss and optimizer
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr = learning_rate)
@@ -139,7 +167,7 @@ for epoch in range(num_epochs):
     total_loss = 0.0 # Total loss for the epoch
     total_correct = 0
     with tqdm(total = total_train_batches, unit = 'batch') as pbar: # Initialize the progress bar
-        pbar.set_description(f'Epoch {epoch + 1} - Training')
+        pbar.set_description(f'Epoch {epoch + pre_trained_epochs + 1} - Training')
         for batch_idx, (frames, labels) in enumerate(train_loader):
             # Move the frames and labels to device
             frames, labels = frames.to(device), labels.to(device)
@@ -168,14 +196,14 @@ for epoch in range(num_epochs):
         # Update the progress bar
         pbar.set_postfix({'Average Loss': average_loss, 'Training Accuracy': training_accuracy})
         # Append the training metrics to the lists
-        epochs.append(epoch + 1)
+        epochs.append(epoch + pre_trained_epochs + 1)
         train_loss.append(average_loss)
         train_acc.append(training_accuracy)
         # Update the learning rate at the end of each epoch
         scheduler.step()
         
     # Perform validation every <validation_interval> epochs
-    if (epoch + 1) % validation_interval == 0:
+    if (epoch + pre_trained_epochs + 1) % validation_interval == 0:
         # Set the model to evaluation mode
         model.eval()
         total_correct = 0
@@ -208,7 +236,7 @@ for epoch in range(num_epochs):
         else:
             nmp = '_1-mp'
         name = '/root/Hand_Gesture/models/classify/' + model_arch + '-' + str(block_arch) + nmp
-        name = name + '_' + str(epoch + 1) + '-epochs'
+        name = name + '_' + str(epoch + pre_trained_epochs + 1) + '-epochs'
         name += '.pth'
         # Save model
         torch.save(model.state_dict(), name)
@@ -221,18 +249,32 @@ if no_max_pool:
 else:
     nmp = '_1-mp'
 name = '/root/Hand_Gesture/models/classify/' + model_arch + '-' + str(block_arch) + nmp
-name = name + '_' + str(epoch + 1) + '-epochs'
+name = name + '_' + str(epoch + pre_trained_epochs + 1) + '-epochs'
 name += '.pth'
 # Save model
 torch.save(model.state_dict(), name)
 
 # Save the training metrics
-Path('logs').mkdir(exist_ok = True)
-log = {
-    'epochs': epochs,
-    'train_loss': train_loss,
-    'train_acc': train_acc,
-    'val_acc': val_acc
-}
-log = pd.DataFrame(log)
-log.to_csv('logs/' + model_arch + '-' + str(block_arch) + nmp + '.csv', index = False)
+if pre_trained:
+    # Load the previous log
+    log = pd.read_csv('logs/' + model_arch + '-' + str(block_arch) + nmp + '.csv')
+    # Append the new log
+    new_metrics = {
+        'epochs': epochs,
+        'train_loss': train_loss,
+        'train_acc': train_acc,
+        'val_acc': val_acc
+    }
+    log = log.append(pd.DataFrame(new_metrics), ignore_index = True)
+    # Save the log
+    log.to_csv('logs/' + model_arch + '-' + str(block_arch) + nmp + '.csv', index = False)
+else:     
+    Path('logs').mkdir(exist_ok = True)
+    log = {
+        'epochs': epochs,
+        'train_loss': train_loss,
+        'train_acc': train_acc,
+        'val_acc': val_acc
+    }
+    log = pd.DataFrame(log)
+    log.to_csv('logs/' + model_arch + '-' + str(block_arch) + nmp + '.csv', index = False)
