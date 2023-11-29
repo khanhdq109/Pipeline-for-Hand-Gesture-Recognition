@@ -7,6 +7,7 @@ pip install kaggle
 pip install numpy pandas matplotlib tqdm
 pip install opencv-python
 pip install scikit-image
+pip install scikit-learn
 pip install torchsummary
 
 sudo apt update
