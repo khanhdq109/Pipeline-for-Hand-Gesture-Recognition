@@ -115,7 +115,7 @@ widen_factor = 1.0
 n_classes = 28
 ## Training parameters
 num_epochs = 10
-learning_rate = 0.001
+learning_rate = 0.0001
 decay_step = 5 # Decay the learning rate after n epochs
 gamma = 0.1 # Decay the learning rate by gamma
 validation_interval = 1 # Perform validation after every n epochs
