@@ -189,7 +189,7 @@ criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr = learning_rate)
 
 # Create a learning rate scheduler
-scheduler = StepLR(optimizer, step_size = decay_step, gamma = 0.5)
+scheduler = StepLR(optimizer, step_size = decay_step, gamma = gamma)
 
 # Lists to store the true and predicted labels for training and validation
 train_true_labels = []
@@ -301,9 +301,7 @@ for epoch in range(num_epochs):
             nmp = '_0-mp'
         else:
             nmp = '_1-mp'
-        name = '/root/Hand_Gesture/models/classify/' + model_arch + '-' + str(block_arch) + nmp
-        name = name + '_' + str(epoch + pre_trained_epochs + 1) + '-epochs'
-        name += '.pth'
+        name = f'/root/Hand_Gesture/models/classify/{model_arch}-{block_arch}{nmp}_{epoch + pre_trained_epochs + 1}-epochs.pth'
         # Save model
         torch.save(model.state_dict(), name)
 
@@ -314,9 +312,7 @@ if no_max_pool:
     nmp = '_0-mp'
 else:
     nmp = '_1-mp'
-name = '/root/Hand_Gesture/models/classify/' + model_arch + '-' + str(block_arch) + nmp
-name = name + '_' + str(epoch + pre_trained_epochs + 1) + '-epochs'
-name += '.pth'
+name = f'/root/Hand_Gesture/models/classify/{model_arch}-{block_arch}{nmp}_{epoch + pre_trained_epochs + 1}-epochs.pth'
 # Save model
 torch.save(model.state_dict(), name)
 
