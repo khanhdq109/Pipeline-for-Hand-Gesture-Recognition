@@ -115,7 +115,7 @@ no_max_pool = True
 widen_factor = 1.0
 n_classes = 28
 ## Training parameters
-num_epochs = 10
+num_epochs = 1
 learning_rate = 0.0001
 decay_step = 5 # Decay the learning rate after n epochs
 gamma = 0.1 # Decay the learning rate by gamma
