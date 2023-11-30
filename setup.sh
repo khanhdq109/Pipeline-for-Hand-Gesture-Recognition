@@ -22,7 +22,7 @@ mkdir JESTER-V1
 cd JESTER-V1
 mkdir images annotations
 cd /root/Hand_Gesture/models
-mkdir classify
+mkdir detect classify
 
 # Setup KAGGLE
 export KAGGLE_CONFIG_DIR=/root/Hand_Gesture/src/data_preprocessing

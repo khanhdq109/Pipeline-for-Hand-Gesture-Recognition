@@ -27,7 +27,7 @@ def gen_annotation(
         des = os.path.join(path, 'jester-v1-validation.txt')
     elif mode == 'test':
         print('Generating test file...')
-        src = 'csv/jester-v1-test.csv'
+        src = 'csv/jester-v1-test-answers.csv'
         des = os.path.join(path, 'jester-v1-test.txt')
     else:
         raise ValueError('Invalid mode!')
@@ -41,11 +41,8 @@ def gen_annotation(
         with open(des, 'w') as ftxt:
             for line in fcsv:
                 line = line.strip()
-                if mode == 'train' or mode == 'val':
-                    line = line.split(';')
-                    ftxt.write(line[0] + ' ' + str(label_list.index(line[1])) + '\n')
-                elif mode == 'test':
-                    ftxt.write(line + '\n')
+                line = line.split(';')
+                ftxt.write(line[0] + ' ' + str(label_list.index(line[1])) + '\n')
     print('Generate ' + mode + ' successfully!!!')
     
 def main():
@@ -55,8 +52,6 @@ def main():
     gen_annotation(mode = 'test')
     
 if __name__ == '__main__':
-    print('\nStarting unzip_multithread.py')
+    print('\nStarting gen_annotation.py')
     
     main()
-    
-    print('Generate annotation completely')

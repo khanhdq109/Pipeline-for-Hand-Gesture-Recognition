@@ -1,3 +1,4 @@
+import os
 import sys
 import pandas as pd
 import numpy as np
@@ -12,7 +13,7 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 from torch.optim.lr_scheduler import StepLR
-from torch.utils.data import DataLoader 
+from torch.utils.data import DataLoader
 from torchvision import transforms
 
 from data_loader import JesterV1
@@ -380,6 +381,9 @@ val_acc = logs['val_acc']
 val_precision = logs['val_precision']
 val_recall = logs['val_recall']
 val_f1 = logs['val_f1']
+## Create folder to save plots
+save_folder = 'logs/plots/' + model_arch + '-' + str(block_arch) + nmp
+Path(save_folder).mkdir(exist_ok = True)
 ## Train loss
 plt.figure(figsize = (12, 6))
 plt.plot(epochs, train_loss, label = 'Train Loss', color = 'red')
@@ -387,7 +391,7 @@ plt.title('Train Loss')
 plt.xlabel('Epochs')
 plt.ylabel('Loss')
 plt.legend()
-plt.savefig('logs/plots/' + model_arch + '-' + str(block_arch) + nmp + '/train_loss.png')
+plt.savefig(os.path.join(save_folder, 'train_loss.png'))
 ## Accuracy
 plt.figure(figsize = (12, 6))
 plt.plot(epochs, train_acc, label = 'Train Accuracy', color = 'red')
@@ -396,7 +400,7 @@ plt.title('Accuracy for Training and Validation')
 plt.xlabel('Epochs')
 plt.ylabel('Accuracy')
 plt.legend()
-plt.savefig('logs/plots/' + model_arch + '-' + str(block_arch) + nmp + '/accuracy.png')
+plt.savefig(os.path.join(save_folder, 'accuracy.png'))
 ## Precision
 plt.figure(figsize = (12, 6))
 plt.plot(epochs, train_precision, label = 'Train Precision', color = 'red')
@@ -405,7 +409,7 @@ plt.title('Precision for Training and Validation')
 plt.xlabel('Epochs')
 plt.ylabel('Precision')
 plt.legend()
-plt.savefig('logs/plots/' + model_arch + '-' + str(block_arch) + nmp + '/precision.png')
+plt.savefig(os.path.join(save_folder, 'precision.png'))
 ## Recall
 plt.figure(figsize = (12, 6))
 plt.plot(epochs, train_recall, label = 'Train Recall', color = 'red')
@@ -414,7 +418,7 @@ plt.title('Recall for Training and Validation')
 plt.xlabel('Epochs')
 plt.ylabel('Recall')
 plt.legend()
-plt.savefig('logs/plots/' + model_arch + '-' + str(block_arch) + nmp + '/recall.png')
+plt.savefig(os.path.join(save_folder, 'recall.png'))
 ## F1-score
 plt.figure(figsize = (12, 6))
 plt.plot(epochs, train_f1, label = 'Train F1-score', color = 'red')
@@ -423,4 +427,4 @@ plt.title('F1-score for Training and Validation')
 plt.xlabel('Epochs')
 plt.ylabel('F1-score')
 plt.legend()
-plt.savefig('logs/plots/' + model_arch + '-' + str(block_arch) + nmp + '/f1-score.png')
+plt.savefig(os.path.join(save_folder, 'f1-score.png'))

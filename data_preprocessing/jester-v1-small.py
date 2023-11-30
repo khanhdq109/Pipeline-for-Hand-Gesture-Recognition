@@ -16,6 +16,7 @@ def create_short_version(file, new_file, ratio = 0.05):
     print('Number of samples after: {}'.format(len(selected_lines)))
         
 def main():
+    print('Create a small version of JESTER-V1 dataset')
     # Get ratio
     arg = sys.argv[1]
     arg = str.upper(arg)
@@ -32,6 +33,8 @@ def main():
     create_short_version(train, new_train, ratio = ratio)
     create_short_version(val, new_val, ratio = ratio)
     create_short_version(test, new_test, ratio = ratio)
+    
+    print('Create a small version of JESTER-V1 dataset successfully!!!')
     
 if __name__ == '__main__':
     main()
