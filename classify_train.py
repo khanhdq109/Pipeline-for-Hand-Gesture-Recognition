@@ -106,7 +106,7 @@ small_version = False
 model_arch = arg1
 block_arch = arg2
 pre_trained = arg3
-pre_trained_path = '/root/Hand_Gesture/models/classify/R3D/r3d-18_10-epochs.pth'
+pre_trained_path = '/root/Hand_Gesture/models/classify/R3D/r3d-18_0-mp_10-epochs.pth'
 if pre_trained:
     pre_trained_epochs = int(pre_trained_path.split('_')[-1].split('-')[0])
 else:
