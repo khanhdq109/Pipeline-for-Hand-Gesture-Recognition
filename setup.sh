@@ -4,7 +4,8 @@
 
 # Install packages
 pip install kaggle
-pip install numpy pandas matplotlib tqdm seaborn
+pip install numpy pandas matplotlib tqdm
+pip install seaborn
 pip install opencv-python
 pip install scikit-image
 pip install scikit-learn
