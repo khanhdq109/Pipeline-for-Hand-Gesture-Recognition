@@ -1,7 +1,6 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torchsummary import summary
 
 from functools import partial
 
@@ -113,7 +112,7 @@ class ResNet(nn.Module):
         conv1_t_stride = 1, # stride in t for the first conv layer
         no_max_pool = False, # whether to use max pool
         widen_factor = 1.0, # widen factor
-        n_classes = 28 # number of classes
+        n_classes = 27 # number of classes
     ):
         super().__init__()
         
