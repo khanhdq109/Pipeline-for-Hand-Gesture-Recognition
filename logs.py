@@ -9,7 +9,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt 
 from pathlib import Path
 
-from sklearn.metrics import precision_score, recall_score, f1_score, confusion_matrix
+from sklearn.metrics import confusion_matrix
 
 def main():
     # Define categories
@@ -52,7 +52,6 @@ def main():
     block_arch = loaded_metrics['block_arch']
     nmp = loaded_metrics['nmp']
     pre_trained = loaded_metrics['pre_trained']
-    pre_trained_epochs = loaded_metrics['pre_trained_epochs']
     # Extract temporary variables
     val_true_labels = loaded_metrics['val_true_labels']
     val_predicted_labels = loaded_metrics['val_predicted_label']

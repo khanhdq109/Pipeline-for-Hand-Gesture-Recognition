@@ -1,11 +1,5 @@
 import json
 import sys
-<<<<<<< HEAD
-import pandas as pd
-import seaborn as sns
-import matplotlib.pyplot as plt
-=======
->>>>>>> 74e9a99db9159bcd9c33a42ae704f8367e65b7d3
 from tqdm import tqdm
 
 import torch
@@ -17,7 +11,6 @@ from torchvision import transforms
 
 from data_loader import JesterV1
 from network.R3D import R3D
-from network.R2Plus1D import R2Plus1D
 
 import warnings
 warnings.filterwarnings('ignore', message = 'The default value of the antialias parameter of all the resizing transforms*')
@@ -30,57 +23,6 @@ warnings.filterwarnings('ignore', message = 'The default value of the antialias 
         python classify_train.py r3d 18 0 --> Train R3D-18 model from scratch
         python classify_train.py r3d 18 1 --> Train R3D-18 model from pre-trained model
 """
-
-# Categories
-class_names = [
-    'Swiping Left',
-    'Swiping Right',
-    'Swiping Down',
-    'Swiping Up',
-    'Pushing Hand Away',
-    'Pulling Hand In',
-    'Sliding Two Fingers Left',
-    'Sliding Two Fingers Right',
-    'Sliding Two Fingers Down',
-    'Sliding Two Fingers Up',
-    'Pushing Two Fingers Away',
-    'Pulling Two Fingers In',
-    'Rolling Hand Forward',
-    'Rolling Hand Backward',
-    'Turning Hand Clockwise',
-    'Turning Hand Counterclockwise',
-    'Zooming In With Full Hand',
-    'Zooming Out With Full Hand',
-    'Zooming In With Two Fingers',
-    'Zooming Out With Two Fingers',
-    'Thumb Up',
-    'Thumb Down',
-    'Shaking Hand',
-    'Stop Sign',
-    'Drumming Fingers',
-    'No gesture',
-    'Doing other things',
-]
-
-# Model architecture
-if len(sys.argv) >= 2:
-    arg1 = sys.argv[1]
-    arg1 = str.lower(arg1)
-else:
-    arg1 = 'r3d'
-# Block architecture
-if len(sys.argv) >= 3:
-    arg2 = sys.argv[2]
-    arg2 = int(arg2)
-else:
-    arg2 = 18
-# Training pre-trained model model
-if len(sys.argv) >= 4:
-    arg3 = sys.argv[3]
-    if int(arg3) == 1:
-        arg3 = True
-    else:
-        arg3 = False
 
 # Check for GPU availability
 if torch.cuda.is_available():
@@ -102,9 +44,9 @@ batch_size = 1
 num_workers = 8 # Number of threads for data loading
 small_version = False
 ## Model parameters
-model_arch = arg1
-block_arch = arg2
-pre_trained = arg3
+model_arch = 'r3d'
+block_arch = 18
+pre_trained = False
 pre_trained_path = '/root/Hand_Gesture/models/classify/R3D/r3d-18_0-mp_10-epochs.pth'
 if pre_trained:
     pre_trained_epochs = int(pre_trained_path.split('_')[-1].split('-')[0])
@@ -155,28 +97,15 @@ train_loader = DataLoader(train_dataset, batch_size = batch_size, shuffle = True
 val_loader = DataLoader(val_dataset, batch_size = batch_size, shuffle = True, num_workers = num_workers) # Validation data loader
 
 # Define model
-if model_arch == 'r3d':
-    model = R3D(
-        block_arch,
-        n_input_channels = 3,
-        conv1_t_size = 7,
-        conv1_t_stride = 1,
-        no_max_pool = no_max_pool,
-        widen_factor = widen_factor,
-        n_classes = n_classes
-    ).to(device)
-elif model_arch == 'r2plus1d':
-    model = R2Plus1D(
-        block_arch,
-        n_input_channels = 3,
-        conv1_t_size = 7,
-        conv1_t_stride = 1,
-        no_max_pool = no_max_pool,
-        widen_factor = widen_factor,
-        n_classes = n_classes
-    ).to(device)
-else:
-    raise ValueError('Invalid model architecture!')
+model = R3D(
+    block_arch,
+    n_input_channels = 3,
+    conv1_t_size = 7,
+    conv1_t_stride = 1,
+    no_max_pool = no_max_pool,
+    widen_factor = widen_factor,
+    n_classes = n_classes
+).to(device)
 
 # Load pre-trained weights if pre_trained is True
 if pre_trained:
@@ -197,7 +126,7 @@ val_true_labels = []
 val_predicted_labels = []
 
 # Start training
-epochs, train_loss, train_acc, val_acc, train_precision_list, train_recall_list, train_f1_list, val_precision_list, val_recall_list, val_f1_list = [], [], [], [], [], [], [], [], [], [] # Define lists to store the training and validation metrics
+epochs, train_loss, train_acc, train_precision_list, train_recall_list, train_f1_list, val_acc, val_precision_list, val_recall_list, val_f1_list = [], [], [], [], [], [], [], [], [], [] # Define lists to store the training and validation metrics
 print('Start training...')
 
 total_train_batches = len(train_loader) # Total number of train batches
@@ -347,7 +276,6 @@ metrics_dict = {
     'block_arch': block_arch,
     'nmp': nmp,
     'pre_trained': pre_trained,
-    'pre_trained_epochs': pre_trained_epochs,
     # Temporary variables
     'val_true_labels': val_true_labels,
     'val_predicted_label': val_predicted_labels,
@@ -355,10 +283,10 @@ metrics_dict = {
     'epochs': epochs,
     'train_loss': train_loss,
     'train_acc': train_acc,
-    'val_acc': val_acc,
     'train_precision_list': train_precision_list,
     'train_recall_list': train_recall_list,
     'train_f1_list': train_f1_list,
+    'val_acc': val_acc,
     'val_precision_list': val_precision_list,
     'val_recall_list': val_recall_list,
     'val_f1_list': val_f1_list
