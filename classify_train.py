@@ -1,16 +1,16 @@
-import os
+import json
 import sys
+<<<<<<< HEAD
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
+=======
+>>>>>>> 74e9a99db9159bcd9c33a42ae704f8367e65b7d3
 from tqdm import tqdm
-from pathlib import Path
-from sklearn.metrics import precision_score, recall_score, f1_score, confusion_matrix
 
 import torch
 import torch.nn as nn 
 import torch.optim as optim
-import torch.nn.functional as F
 from torch.optim.lr_scheduler import StepLR
 from torch.utils.data import DataLoader
 from torchvision import transforms
@@ -238,20 +238,33 @@ for epoch in range(num_epochs):
         
         # Calculate the average loss and training accuracy
         average_loss = total_loss / total_train_batches
-        training_accuracy = total_correct / total_train_batches
+        train_accuracy = total_correct / total_train_batches
         # Update the progress bar
-        pbar.set_postfix({'Average Loss': average_loss, 'Training Accuracy': training_accuracy})
+        pbar.set_postfix({'Average Loss': average_loss, 'Training Accuracy': train_accuracy})
+        
         # Calculate Precision, Recall and F1-score for training
-        train_precision = precision_score(train_true_labels, train_predicted_labels, average = 'weighted')
-        train_recall = recall_score(train_true_labels, train_predicted_labels, average = 'weighted')
-        train_f1 = f1_score(train_true_labels, train_predicted_labels, average = 'weighted')
+        correct_by_class = [0] * n_classes
+        actual_by_class = [0] * n_classes
+        predicted_by_class = [0] * n_classes
+        
+        for true_label, predicted_label in zip(train_true_labels, train_predicted_labels):
+            actual_by_class[true_label] += 1
+            predicted_by_class[predicted_label] += 1
+            if true_label == predicted_label:
+                correct_by_class[true_label] += 1
+                
+        train_precision = sum(correct_by_class) / sum(predicted_by_class) if sum(predicted_by_class) != 0 else 0
+        train_recall = sum(correct_by_class) / sum(actual_by_class) if sum(actual_by_class) != 0 else 0
+        train_f1 = 2 * (train_precision * train_recall) / (train_precision + train_recall) if (train_precision + train_recall) != 0 else 0
+        
         # Append the training metrics to the lists
         epochs.append(epoch + pre_trained_epochs + 1)
         train_loss.append(average_loss)
-        train_acc.append(training_accuracy)
+        train_acc.append(train_accuracy)
         train_precision_list.append(train_precision)
         train_recall_list.append(train_recall)
         train_f1_list.append(train_f1)
+        
         # Update the learning rate at the end of each epoch
         scheduler.step()
         
@@ -280,15 +293,27 @@ for epoch in range(num_epochs):
                     pbar.update(1)
             
             # Calculate validation accuracy
-            validation_accuracy = total_correct / total_val_batches
+            val_accuracy = total_correct / total_val_batches
             # Update the progress bar
-            pbar.set_postfix({'Validation Accuracy': validation_accuracy})
+            pbar.set_postfix({'Validation Accuracy': val_accuracy})
+            
             # Calculate Precision, Recall and F1-score for validation
-            val_precision = precision_score(val_true_labels, val_predicted_labels, average = 'weighted')
-            val_recall = recall_score(val_true_labels, val_predicted_labels, average = 'weighted')
-            val_f1 = f1_score(val_true_labels, val_predicted_labels, average = 'weighted')
+            correct_by_class = [0] * n_classes
+            actual_by_class = [0] * n_classes
+            predicted_by_class = [0] * n_classes
+                
+            for true_label, predicted_label in zip(val_true_labels, val_predicted_labels):
+                actual_by_class[true_label] += 1
+                predicted_by_class[predicted_label] += 1
+                if true_label == predicted_label:
+                    correct_by_class[true_label] += 1
+                    
+            val_precision = sum(correct_by_class) / sum(predicted_by_class) if sum(predicted_by_class) != 0 else 0
+            val_recall = sum(correct_by_class) / sum(actual_by_class) if sum(actual_by_class) != 0 else 0
+            val_f1 = 2 * (val_precision * val_recall) / (val_precision + val_recall) if (val_precision + val_recall) != 0 else 0
+            
             # Append the validation metrics to the list
-            val_acc.append(validation_accuracy)
+            val_acc.append(val_accuracy)
             val_precision_list.append(val_precision)
             val_recall_list.append(val_recall)
             val_f1_list.append(val_f1)
@@ -315,111 +340,29 @@ name = f'/root/Hand_Gesture/models/classify/{model_arch}-{block_arch}{nmp}_{epoc
 # Save model
 torch.save(model.state_dict(), name)
 
-# Save the training metrics
-if pre_trained:
-    # Load the previous log
-    log = pd.read_csv('logs/' + model_arch + '-' + str(block_arch) + nmp + '.csv')
-    # Append the new log
-    new_metrics = {
-        'epochs': epochs,
-        'train_loss': train_loss,
-        'train_acc': train_acc,
-        'train_precision': train_precision_list,
-        'train_recall': train_recall_list,
-        'train_f1': train_f1_list,
-        'val_acc': val_acc,
-        'val_precision': val_precision_list,
-        'val_recall': val_recall_list,
-        'val_f1': val_f1_list
-    }
-    log = log.append(pd.DataFrame(new_metrics), ignore_index = True)
-    # Save the log
-    log.to_csv('logs/' + model_arch + '-' + str(block_arch) + nmp + '.csv', index = False)
-else:     
-    Path('logs').mkdir(exist_ok = True)
-    log = {
-        'epochs': epochs,
-        'train_loss': train_loss,
-        'train_acc': train_acc,
-        'train_precision': train_precision_list,
-        'train_recall': train_recall_list,
-        'train_f1': train_f1_list,
-        'val_acc': val_acc,
-        'val_precision': val_precision_list,
-        'val_recall': val_recall_list,
-        'val_f1': val_f1_list
-    }
-    log = pd.DataFrame(log)
-    log.to_csv('logs/' + model_arch + '-' + str(block_arch) + nmp + '.csv', index = False)
-    
-# Calculate the confusion matrix for validation data
-val_conf_matrix = confusion_matrix(val_true_labels, val_predicted_labels)
-# Visualize and save confusion matrix after training
-plt.figure(figsize = (12, 12))
-sns.heatmap(val_conf_matrix, annot = True, fmt = 'd', xticklabels = class_names, yticklabels = class_names)
-plt.title('Confusion Matrix')
-plt.xlabel('Predicted Labels')
-plt.ylabel('True Labels')
-plt.savefig('logs/plots/' + model_arch + '-' + str(block_arch) + nmp + '/confusion_matrix.png')
-
-# Visualize and save metrics for training and validation
-## Read the log file
-logs = pd.read_csv('logs/' + model_arch + '-' + str(block_arch) + nmp + '.csv')
-## Extract the metrics
-epochs = logs['epochs']
-train_loss = logs['train_loss']
-train_acc = logs['train_acc']
-train_precision = logs['train_precision']
-train_recall = logs['train_recall']
-train_f1 = logs['train_f1']
-val_acc = logs['val_acc']
-val_precision = logs['val_precision']
-val_recall = logs['val_recall']
-val_f1 = logs['val_f1']
-## Create folder to save plots
-save_folder = 'logs/plots/' + model_arch + '-' + str(block_arch) + nmp
-Path(save_folder).mkdir(exist_ok = True)
-## Train loss
-plt.figure(figsize = (12, 6))
-plt.plot(epochs, train_loss, label = 'Train Loss', color = 'red')
-plt.title('Train Loss')
-plt.xlabel('Epochs')
-plt.ylabel('Loss')
-plt.legend()
-plt.savefig(os.path.join(save_folder, 'train_loss.png'))
-## Accuracy
-plt.figure(figsize = (12, 6))
-plt.plot(epochs, train_acc, label = 'Train Accuracy', color = 'red')
-plt.plot(epochs, val_acc, label = 'Validation Accuracy', color = 'blue')
-plt.title('Accuracy for Training and Validation')
-plt.xlabel('Epochs')
-plt.ylabel('Accuracy')
-plt.legend()
-plt.savefig(os.path.join(save_folder, 'accuracy.png'))
-## Precision
-plt.figure(figsize = (12, 6))
-plt.plot(epochs, train_precision, label = 'Train Precision', color = 'red')
-plt.plot(epochs, val_precision, label = 'Validation Precision', color = 'blue')
-plt.title('Precision for Training and Validation')
-plt.xlabel('Epochs')
-plt.ylabel('Precision')
-plt.legend()
-plt.savefig(os.path.join(save_folder, 'precision.png'))
-## Recall
-plt.figure(figsize = (12, 6))
-plt.plot(epochs, train_recall, label = 'Train Recall', color = 'red')
-plt.plot(epochs, val_recall, label = 'Validation Recall', color = 'blue')
-plt.title('Recall for Training and Validation')
-plt.xlabel('Epochs')
-plt.ylabel('Recall')
-plt.legend()
-plt.savefig(os.path.join(save_folder, 'recall.png'))
-## F1-score
-plt.figure(figsize = (12, 6))
-plt.plot(epochs, train_f1, label = 'Train F1-score', color = 'red')
-plt.plot(epochs, val_f1, label = 'Validation F1-score', color = 'blue')
-plt.title('F1-score for Training and Validation')
-plt.xlabel('Epochs')
-plt.ylabel('F1-score')
-plt.legend()
-plt.savefig(os.path.join(save_folder, 'f1-score.png'))
+# Save all metrics as a json file
+metrics_dict = {
+    # Model parameters
+    'model_arch': model_arch,
+    'block_arch': block_arch,
+    'nmp': nmp,
+    'pre_trained': pre_trained,
+    'pre_trained_epochs': pre_trained_epochs,
+    # Temporary variables
+    'val_true_labels': val_true_labels,
+    'val_predicted_label': val_predicted_labels,
+    # Metrics
+    'epochs': epochs,
+    'train_loss': train_loss,
+    'train_acc': train_acc,
+    'val_acc': val_acc,
+    'train_precision_list': train_precision_list,
+    'train_recall_list': train_recall_list,
+    'train_f1_list': train_f1_list,
+    'val_precision_list': val_precision_list,
+    'val_recall_list': val_recall_list,
+    'val_f1_list': val_f1_list
+}
+json_path = 'metrics.json'
+with open(json_path, 'w') as json_file:
+    json.dump(metrics_dict, json_file)
