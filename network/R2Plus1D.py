@@ -1,7 +1,6 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torchsummary import summary
 
 from functools import partial
 
@@ -350,7 +349,6 @@ def main():
     )
     
     print(model)
-    summary(model, (3, 30, 112, 112))
     
 if __name__ == '__main__':
     main()

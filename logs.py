@@ -1,5 +1,5 @@
 """ 
-    Write something here (reasons why I create this file)
+    Save the training metrics and visualize the metrics after training.
 """
 
 import os
@@ -58,10 +58,10 @@ def main():
     epochs = loaded_metrics['epochs']
     train_loss = loaded_metrics['train_loss']
     train_acc = loaded_metrics['train_acc']
-    val_acc = loaded_metrics['val_acc']
     train_precision_list = loaded_metrics['train_precision_list']
     train_recall_list = loaded_metrics['train_recall_list']
     train_f1_list = loaded_metrics['train_f1_list']
+    val_acc = loaded_metrics['val_acc']
     val_precision_list = loaded_metrics['val_precision_list']
     val_recall_list = loaded_metrics['val_recall_list']
     val_f1_list = loaded_metrics['val_f1_list']

@@ -11,9 +11,6 @@ from torchvision import transforms
 from data_loader import JesterV1
 from network.R3D import R3D
 
-import warnings
-warnings.filterwarnings('ignore', message = 'The default value of the antialias parameter of all the resizing transforms*')
-
 # Check for GPU availability
 if torch.cuda.is_available():
     device = torch.device('cuda')
@@ -30,7 +27,7 @@ print('Selected device:', device)
 ## Data parameters
 resize = (112, 112)
 num_frames = 30
-batch_size = 1
+batch_size = 2
 num_workers = 8 # Number of threads for data loading
 small_version = False
 ## Model parameters
