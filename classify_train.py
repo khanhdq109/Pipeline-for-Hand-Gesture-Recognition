@@ -1,5 +1,4 @@
 import json
-import sys
 from tqdm import tqdm
 
 import torch
@@ -14,15 +13,6 @@ from network.R3D import R3D
 
 import warnings
 warnings.filterwarnings('ignore', message = 'The default value of the antialias parameter of all the resizing transforms*')
-
-""" 
-    Full command to train model:
-        python classify_train.py <model_arch> <block_arch> <pre_trained>
-        
-    Example:
-        python classify_train.py r3d 18 0 --> Train R3D-18 model from scratch
-        python classify_train.py r3d 18 1 --> Train R3D-18 model from pre-trained model
-"""
 
 # Check for GPU availability
 if torch.cuda.is_available():

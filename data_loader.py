@@ -21,6 +21,8 @@ class JesterV1(Dataset):
                 annotations_file = os.path.join(data_dir, 'annotations/jester-v1-train.txt')
             elif mode == 'val':
                 annotations_file = os.path.join(data_dir, 'annotations/jester-v1-validation.txt')
+            elif mode == 'test':
+                annotations_file = os.path.join(data_dir, 'annotations/jester-v1-test.txt')
             else:
                 raise ValueError('Invalid mode')
         else:
@@ -28,6 +30,8 @@ class JesterV1(Dataset):
                 annotations_file = os.path.join(data_dir, 'annotations/jester-v1-train-small.txt')
             elif mode == 'val':
                 annotations_file = os.path.join(data_dir, 'annotations/jester-v1-validation-small.txt')
+            elif mode == 'test':
+                annotations_file = os.path.join(data_dir, 'annotations/jester-v1-test-small.txt')
             else:
                 raise ValueError('Invalid mode')
         
