@@ -11,6 +11,42 @@ from torchvision import transforms
 from data_loader import JesterV1
 from network.R3D import R3D
 
+"""
+    Support functions
+"""
+def load_pretrained_weights(model, pre_trained_path, device):
+    if pre_trained_path:
+        model.load_state_dict(
+            torch.load(pre_trained_path, map_location = device),
+            strict = False
+        )
+        print('Pre-trained model loaded successfully!')
+        
+def calculate_metrics(true_labels, predicted_labels, n_classes):
+    correct_by_class = [0] * n_classes
+    actual_by_class = [0] * n_classes
+    predicted_by_class = [0] * n_classes
+    
+    for true_label, predicted_label in zip(true_labels, predicted_labels):
+        actual_by_class[true_label] += 1
+        predicted_by_class[predicted_label] += 1
+        if true_label == predicted_label:
+            correct_by_class[true_label] += 1
+    
+    precision = sum(correct_by_class) / sum(predicted_by_class) if sum(predicted_by_class) != 0 else 0
+    recall = sum(correct_by_class) / sum(actual_by_class) if sum(actual_by_class) != 0 else 0
+    f1 = 2 * (precision * recall) / (precision + recall) if (precision + recall) != 0 else 0
+    
+    return precision, recall, f1
+
+def save_model(model, model_arch, block_arch, nmp, epoch, pre_trained_epochs):
+    name = f'/root/Hand_Gesture/models/classify/{model_arch}-{block_arch}{nmp}_{epoch + pre_trained_epochs}-epochs.pth'
+    torch.save(model.state_dict(), name)
+    
+def save_metrics(metrics_dict, json_path):
+    with open(json_path, 'w') as json_file:
+        json.dump(metrics_dict, json_file)
+
 # Check for GPU availability
 if torch.cuda.is_available():
     device = torch.device('cuda')
@@ -28,7 +64,7 @@ print('Selected device:', device)
 resize = (112, 112)
 num_frames = 30
 batch_size = 1
-num_workers = 8 # Number of threads for data loading
+num_workers = 4 # Number of threads for data loading
 small_version = False
 ## Model parameters
 model_arch = 'r3d'
@@ -40,6 +76,10 @@ if pre_trained:
 else:
     pre_trained_epochs = 0
 no_max_pool = True
+if no_max_pool:
+    nmp = '_0-mp'
+else:
+    nmp = '_1-mp'
 widen_factor = 1.0
 n_classes = 27
 ## Training parameters
@@ -96,8 +136,7 @@ model = R3D(
 
 # Load pre-trained weights if pre_trained is True
 if pre_trained:
-    model.load_state_dict(torch.load(pre_trained_path), strict = False)
-    print('Pre-trained model loaded successfully!')
+    load_pretrained_weights(model, pre_trained_path, device)
 
 # Define loss and optimizer
 criterion = nn.CrossEntropyLoss()
@@ -105,12 +144,6 @@ optimizer = optim.Adam(model.parameters(), lr = learning_rate)
 
 # Create a learning rate scheduler
 scheduler = StepLR(optimizer, step_size = decay_step, gamma = gamma)
-
-# Lists to store the true and predicted labels for training and validation
-train_true_labels = []
-train_predicted_labels = []
-val_true_labels = []
-val_predicted_labels = []
 
 # Start training
 epochs, train_loss, train_acc, train_precision_list, train_recall_list, train_f1_list, val_acc, val_precision_list, val_recall_list, val_f1_list = [], [], [], [], [], [], [], [], [], [] # Define lists to store the training and validation metrics
@@ -123,6 +156,10 @@ for epoch in range(num_epochs):
     model.train()
     total_loss = 0.0 # Total loss for the epoch
     total_correct = 0
+    
+    # Lists to store the true and predicted labels for training
+    train_true_labels = []
+    train_predicted_labels = []
     
     with tqdm(total = total_train_batches, unit = 'batch') as pbar: # Initialize the progress bar
         pbar.set_description(f'Epoch {epoch + pre_trained_epochs + 1} - Training')
@@ -159,19 +196,11 @@ for epoch in range(num_epochs):
         pbar.set_postfix({'Average Loss': average_loss, 'Training Accuracy': train_accuracy})
         
         # Calculate Precision, Recall and F1-score for training
-        correct_by_class = [0] * n_classes
-        actual_by_class = [0] * n_classes
-        predicted_by_class = [0] * n_classes
-        
-        for true_label, predicted_label in zip(train_true_labels, train_predicted_labels):
-            actual_by_class[true_label] += 1
-            predicted_by_class[predicted_label] += 1
-            if true_label == predicted_label:
-                correct_by_class[true_label] += 1
-                
-        train_precision = sum(correct_by_class) / sum(predicted_by_class) if sum(predicted_by_class) != 0 else 0
-        train_recall = sum(correct_by_class) / sum(actual_by_class) if sum(actual_by_class) != 0 else 0
-        train_f1 = 2 * (train_precision * train_recall) / (train_precision + train_recall) if (train_precision + train_recall) != 0 else 0
+        train_precision, train_recall, train_f1 = calculate_metrics(
+            train_true_labels,
+            train_predicted_labels,
+            n_classes
+        )
         
         # Append the training metrics to the lists
         epochs.append(epoch + pre_trained_epochs + 1)
@@ -183,15 +212,19 @@ for epoch in range(num_epochs):
         
         # Update the learning rate at the end of each epoch
         scheduler.step()
-        
+      
     # Perform validation every <validation_interval> epochs
     if (epoch + pre_trained_epochs + 1) % validation_interval == 0:
         # Set the model to evaluation mode
         model.eval()
         total_correct = 0
         
+        # Lists to store the true and predicted labels for validation
+        val_true_labels = []
+        val_predicted_labels = []
+        
         with tqdm(total = total_val_batches, unit = 'batch') as pbar: # Initialize the progress bar
-            pbar.set_description(f'Epoch {epoch + 1} - Validation')
+            pbar.set_description(f'Epoch {epoch + pre_trained_epochs + 1} - Validation')
             with torch.no_grad():
                 for batch_idx, (frames, labels) in enumerate(val_loader):
                     # Move the frames and labels to GPU
@@ -214,19 +247,11 @@ for epoch in range(num_epochs):
             pbar.set_postfix({'Validation Accuracy': val_accuracy})
             
             # Calculate Precision, Recall and F1-score for validation
-            correct_by_class = [0] * n_classes
-            actual_by_class = [0] * n_classes
-            predicted_by_class = [0] * n_classes
-                
-            for true_label, predicted_label in zip(val_true_labels, val_predicted_labels):
-                actual_by_class[true_label] += 1
-                predicted_by_class[predicted_label] += 1
-                if true_label == predicted_label:
-                    correct_by_class[true_label] += 1
-                    
-            val_precision = sum(correct_by_class) / sum(predicted_by_class) if sum(predicted_by_class) != 0 else 0
-            val_recall = sum(correct_by_class) / sum(actual_by_class) if sum(actual_by_class) != 0 else 0
-            val_f1 = 2 * (val_precision * val_recall) / (val_precision + val_recall) if (val_precision + val_recall) != 0 else 0
+            val_precision, val_recall, val_f1 = calculate_metrics(
+                val_true_labels,
+                val_predicted_labels,
+                n_classes
+            )
             
             # Append the validation metrics to the list
             val_acc.append(val_accuracy)
@@ -236,25 +261,13 @@ for epoch in range(num_epochs):
             
     # Save the model
     if (epoch + 1) % save_interval == 0:
-        # Define model name
-        if no_max_pool:
-            nmp = '_0-mp'
-        else:
-            nmp = '_1-mp'
-        name = f'/root/Hand_Gesture/models/classify/{model_arch}-{block_arch}{nmp}_{epoch + pre_trained_epochs + 1}-epochs.pth'
-        # Save model
-        torch.save(model.state_dict(), name)
+        save_model(
+            model,
+            model_arch, block_arch, nmp,
+            epoch, pre_trained_epochs
+        )
 
 print('Training sucessfully!!!')
-
-# Save the model for the last time
-if no_max_pool:
-    nmp = '_0-mp'
-else:
-    nmp = '_1-mp'
-name = f'/root/Hand_Gesture/models/classify/{model_arch}-{block_arch}{nmp}_{epoch + pre_trained_epochs + 1}-epochs.pth'
-# Save model
-torch.save(model.state_dict(), name)
 
 # Save all metrics as a json file
 metrics_dict = {
@@ -278,6 +291,4 @@ metrics_dict = {
     'val_recall_list': val_recall_list,
     'val_f1_list': val_f1_list
 }
-json_path = 'metrics.json'
-with open(json_path, 'w') as json_file:
-    json.dump(metrics_dict, json_file)
+save_metrics(metrics_dict, 'metrics.json')
