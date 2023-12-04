@@ -21,26 +21,9 @@ def load_pretrained_weights(model, pre_trained_path, device):
             strict = False
         )
         print('Pre-trained model loaded successfully!')
-        
-def calculate_metrics(true_labels, predicted_labels, n_classes):
-    correct_by_class = [0] * n_classes
-    actual_by_class = [0] * n_classes
-    predicted_by_class = [0] * n_classes
-    
-    for true_label, predicted_label in zip(true_labels, predicted_labels):
-        actual_by_class[true_label] += 1
-        predicted_by_class[predicted_label] += 1
-        if true_label == predicted_label:
-            correct_by_class[true_label] += 1
-    
-    precision = sum(correct_by_class) / sum(predicted_by_class) if sum(predicted_by_class) != 0 else 0
-    recall = sum(correct_by_class) / sum(actual_by_class) if sum(actual_by_class) != 0 else 0
-    f1 = 2 * (precision * recall) / (precision + recall) if (precision + recall) != 0 else 0
-    
-    return precision, recall, f1
 
 def save_model(model, model_arch, block_arch, nmp, epoch, pre_trained_epochs):
-    name = f'/root/Hand_Gesture/models/classify/{model_arch}-{block_arch}{nmp}_{epoch + pre_trained_epochs}-epochs.pth'
+    name = f'../models/classify/{model_arch.upper()}/{model_arch}-{block_arch}{nmp}_{epoch + pre_trained_epochs + 1}-epochs.pth'
     torch.save(model.state_dict(), name)
     
 def save_metrics(metrics_dict, json_path):
@@ -65,12 +48,12 @@ resize = (112, 112)
 num_frames = 30
 batch_size = 1
 num_workers = 4 # Number of threads for data loading
-small_version = False
+small_version = True
 ## Model parameters
 model_arch = 'r3d'
-block_arch = 34
+block_arch = 10
 pre_trained = False
-pre_trained_path = '/root/Hand_Gesture/models/classify/R3D/r3d-18_0-mp_10-epochs.pth'
+pre_trained_path = '../models/classify/R3D/r3d-18_0-mp_10-epochs.pth'
 if pre_trained:
     pre_trained_epochs = int(pre_trained_path.split('_')[-1].split('-')[0])
 else:
@@ -83,7 +66,7 @@ else:
 widen_factor = 1.0
 n_classes = 27
 ## Training parameters
-num_epochs = 10
+num_epochs = 1
 learning_rate = 0.001
 decay_step = 5 # Decay the learning rate after n epochs
 gamma = 0.1 # Decay the learning rate by gamma
@@ -91,7 +74,7 @@ validation_interval = 1 # Perform validation after every n epochs
 save_interval = 1 # Save model after every n epochs
 
 # Define dataset
-data_dir = '/root/Hand_Gesture/datasets/JESTER-V1'
+data_dir = '../datasets/JESTER-V1'
 
 # Define transformations
 transform = transforms.Compose([
@@ -146,7 +129,7 @@ optimizer = optim.Adam(model.parameters(), lr = learning_rate)
 scheduler = StepLR(optimizer, step_size = decay_step, gamma = gamma)
 
 # Start training
-epochs, train_loss, train_acc, train_precision_list, train_recall_list, train_f1_list, val_acc, val_precision_list, val_recall_list, val_f1_list = [], [], [], [], [], [], [], [], [], [] # Define lists to store the training and validation metrics
+epochs, train_loss, train_acc, val_acc = [], [], [], [] # Define lists to store the training and validation metrics
 print('Start training...')
 
 total_train_batches = len(train_loader) # Total number of train batches
@@ -156,10 +139,6 @@ for epoch in range(num_epochs):
     model.train()
     total_loss = 0.0 # Total loss for the epoch
     total_correct = 0
-    
-    # Lists to store the true and predicted labels for training
-    train_true_labels = []
-    train_predicted_labels = []
     
     with tqdm(total = total_train_batches, unit = 'batch') as pbar: # Initialize the progress bar
         pbar.set_description(f'Epoch {epoch + pre_trained_epochs + 1} - Training')
@@ -182,9 +161,6 @@ for epoch in range(num_epochs):
             _, predictions = outputs.max(1)
             # Update the total number of correct predictions
             total_correct += (predictions == labels).sum().item()
-            # Append the true and predicted labels
-            train_true_labels.extend(labels.cpu().numpy())
-            train_predicted_labels.extend(predictions.cpu().numpy())
             # Update the progress bar
             pbar.update(1)
             pbar.set_postfix({'Train Loss': loss.item()}, refresh = False)
@@ -195,20 +171,10 @@ for epoch in range(num_epochs):
         # Update the progress bar
         pbar.set_postfix({'Average Loss': average_loss, 'Training Accuracy': train_accuracy})
         
-        # Calculate Precision, Recall and F1-score for training
-        train_precision, train_recall, train_f1 = calculate_metrics(
-            train_true_labels,
-            train_predicted_labels,
-            n_classes
-        )
-        
         # Append the training metrics to the lists
         epochs.append(epoch + pre_trained_epochs + 1)
         train_loss.append(average_loss)
         train_acc.append(train_accuracy)
-        train_precision_list.append(train_precision)
-        train_recall_list.append(train_recall)
-        train_f1_list.append(train_f1)
         
         # Update the learning rate at the end of each epoch
         scheduler.step()
@@ -218,10 +184,6 @@ for epoch in range(num_epochs):
         # Set the model to evaluation mode
         model.eval()
         total_correct = 0
-        
-        # Lists to store the true and predicted labels for validation
-        val_true_labels = []
-        val_predicted_labels = []
         
         with tqdm(total = total_val_batches, unit = 'batch') as pbar: # Initialize the progress bar
             pbar.set_description(f'Epoch {epoch + pre_trained_epochs + 1} - Validation')
@@ -235,9 +197,6 @@ for epoch in range(num_epochs):
                     _, predictions = outputs.max(1)
                     # Update the total number of correct predictions
                     total_correct += (predictions == labels).sum().item()
-                    # Append true and predicted labels
-                    val_true_labels.extend(labels.cpu().numpy())
-                    val_predicted_labels.extend(predictions.cpu().numpy())
                     # Update the progress bar
                     pbar.update(1)
             
@@ -246,18 +205,8 @@ for epoch in range(num_epochs):
             # Update the progress bar
             pbar.set_postfix({'Validation Accuracy': val_accuracy})
             
-            # Calculate Precision, Recall and F1-score for validation
-            val_precision, val_recall, val_f1 = calculate_metrics(
-                val_true_labels,
-                val_predicted_labels,
-                n_classes
-            )
-            
             # Append the validation metrics to the list
             val_acc.append(val_accuracy)
-            val_precision_list.append(val_precision)
-            val_recall_list.append(val_recall)
-            val_f1_list.append(val_f1)
             
     # Save the model
     if (epoch + 1) % save_interval == 0:
@@ -276,19 +225,10 @@ metrics_dict = {
     'block_arch': block_arch,
     'nmp': nmp,
     'pre_trained': pre_trained,
-    # Temporary variables
-    'val_true_labels': val_true_labels,
-    'val_predicted_label': val_predicted_labels,
     # Metrics
     'epochs': epochs,
     'train_loss': train_loss,
     'train_acc': train_acc,
-    'train_precision_list': train_precision_list,
-    'train_recall_list': train_recall_list,
-    'train_f1_list': train_f1_list,
     'val_acc': val_acc,
-    'val_precision_list': val_precision_list,
-    'val_recall_list': val_recall_list,
-    'val_f1_list': val_f1_list
 }
 save_metrics(metrics_dict, 'metrics.json')

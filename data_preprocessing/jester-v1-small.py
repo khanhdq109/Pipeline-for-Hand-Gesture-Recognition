@@ -1,7 +1,7 @@
 import sys
 import random
 
-def create_short_version(file, new_file, ratio = 0.05):
+def create_short_version(file, new_file, ratio = 0.01):
     # Open file
     with open(file, 'r') as f:
         # Read all lines
@@ -22,13 +22,13 @@ def main():
     arg = str.upper(arg)
     ratio = float(arg)
     
-    train = '/root/Hand_Gesture/datasets/JESTER-V1/annotations/jester-v1-train.txt'
-    val = '/root/Hand_Gesture/datasets/JESTER-V1/annotations/jester-v1-validation.txt'
-    test = '/root/Hand_Gesture/datasets/JESTER-V1/annotations/jester-v1-test.txt'
+    train = '../../datasets/JESTER-V1/annotations/jester-v1-train.txt'
+    val = '../../datasets/JESTER-V1/annotations/jester-v1-validation.txt'
+    test = '../../datasets/JESTER-V1/annotations/jester-v1-test.txt'
     
-    new_train = '/root/Hand_Gesture/datasets/JESTER-V1/annotations/jester-v1-train-small.txt'
-    new_val = '/root/Hand_Gesture/datasets/JESTER-V1/annotations/jester-v1-validation-small.txt'
-    new_test = '/root/Hand_Gesture/datasets/JESTER-V1/annotations/jester-v1-test-small.txt'
+    new_train = '../../datasets/JESTER-V1/annotations/jester-v1-train-small.txt'
+    new_val = '../../datasets/JESTER-V1/annotations/jester-v1-validation-small.txt'
+    new_test = '../../datasets/JESTER-V1/annotations/jester-v1-test-small.txt'
     
     create_short_version(train, new_train, ratio = ratio)
     create_short_version(val, new_val, ratio = ratio)

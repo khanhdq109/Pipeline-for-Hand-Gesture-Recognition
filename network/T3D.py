@@ -42,5 +42,76 @@ class DenseNet(nn.Module):
 class Temporal3DConvs(nn.Module):
     pass
 
-def DenseNet(model_depth, **kwargs):
+def D3D(model_depth, **kwargs):
     assert model_depth in [121, 169, 201, 264]
+    
+    if model_depth == 121:
+        model = DenseNet(
+            TransitionBlock, # transition_block
+            [6, 12, 24, 16], # layers
+            get_inplanes(), # block_inplanes: [64, 128, 256, 512]
+            **kwargs # others
+        )
+    elif model_depth == 169:
+        model = DenseNet(
+            TransitionBlock,
+            [6, 12, 32, 32],
+            get_inplanes(),
+            **kwargs
+        )
+    elif model_depth == 201:
+        model = DenseNet(
+            TransitionBlock,
+            [6, 12, 48, 32],
+            get_inplanes(),
+            **kwargs
+        )
+    elif model_depth == 264:
+        model = DenseNet(
+            TransitionBlock,
+            [6, 12, 64, 48],
+            get_inplanes(),
+            **kwargs
+        )
+    
+    return model
+
+def T3D(model_depth, **kwargs):
+    assert model_depth in [121, 169, 201, 264]
+    
+    if model_depth == 121:
+        model = DenseNet(
+            TemporalTransitionBlock, # transition_block
+            [6, 12, 24, 16], # layers
+            get_inplanes(), # block_inplanes: [64, 128, 256, 512]
+            **kwargs # others
+        )
+    elif model_depth == 169:
+        model = DenseNet(
+            TemporalTransitionBlock,
+            [6, 12, 32, 32],
+            get_inplanes(),
+            **kwargs
+        )
+    elif model_depth == 201:
+        model = DenseNet(
+            TemporalTransitionBlock,
+            [6, 12, 48, 32],
+            get_inplanes(),
+            **kwargs
+        )
+    elif model_depth == 264:
+        model = DenseNet(
+            TemporalTransitionBlock,
+            [6, 12, 64, 48],
+            get_inplanes(),
+            **kwargs
+        )
+    
+    return model
+
+def main():
+    pass
+
+if __name__ == '__main__':
+    main()
