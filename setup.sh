@@ -10,6 +10,7 @@ pip install opencv-python
 pip install scikit-image
 pip install scikit-learn
 pip install torchsummary
+# pip install ultralytics
 
 sudo apt update
 sudo apt search vim

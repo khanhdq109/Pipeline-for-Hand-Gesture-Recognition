@@ -18,14 +18,36 @@ For classification task, we use ***JESTER*** dataset. You can download it here:
 * [20BN_jester_V1_videos](https://www.kaggle.com/datasets/kylecloud/20bn-jester-v1-videos)
 
 ## Setup
-Setup directories: `Hand_Gesture/src`
+Setup directories: `Hand_Gesture/src`.  
 After clone this repository in `src`, run this command to install requirement packages, download and setup dataset:
 ```
 ./setup.sh
 ```
 
 ## Execute
-...
+To train, evaluate models as well as run the program, you have to manually tune parameters from the source code.
+### Detection
+Train:
+```
+python detect_train.py
+```
+Evaluate (***image*** or ***video*** mode):
+```
+python detect_eval.py
+```
+### Classification
+Run this command to train model as well as save metrics:
+```
+./train.sh
+```
+Evaluate:
+```
+python classify_eval.py
+```
+Run the model with real-time camera:
+```
+python program.py
+```
 
 ## Author
 Quoc Khanh

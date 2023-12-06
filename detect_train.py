@@ -1,7 +1,7 @@
 from ultralytics import YOLO
 
 # Dataset
-dataset = '/root/Hand_Gesture/datasets/HAGRID_YOLO-V1/hagrid.yaml'
+dataset = '../datasets/HAGRID_YOLO-V1/hagrid.yaml'
 
 # Load model
 model = YOLO('model/detect/v8m_150.pt')
