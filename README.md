@@ -38,7 +38,7 @@ python detect_eval.py
 ```
 ### Classification
 Run this command to train model as well as save metrics:
-> You can set *small_version* parameter in **classify_train.py** to *True* to run a demo with a small version of the dataset.
+> You can set ***small_version = True*** in ***classify_train.py*** to run a demo with a small version of the dataset.
 ```
 ./train.sh
 ```
