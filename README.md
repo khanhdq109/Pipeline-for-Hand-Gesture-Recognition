@@ -9,13 +9,16 @@
 * [program.py](./program.py)                : run the program on real-time camera
 
 ## Dataset
-...
+### Detection
+In this project, we use [HaGRID](github.com/hukenovs/hagrid) dataset for detection task. You can download the version of the dataset for YOLO here:
+[HAGRID-YOLO-V1](www.kaggle.com/datasets/khnhoquc/hagrid-yolo-v1)
 
 ## Setup
-Setup directories: **Hand_Gesture/src**, `DirectoryName`
-
-Clone this repository in **src** folder.
-
+Setup directories: `Hand_Gesture/src`
+After clone this repository in `src`, run this command to install requirement packages, download and setup dataset:
+```
+./setup.sh
+```
 
 ## Execute
 ...
