@@ -10,8 +10,12 @@
 
 ## Dataset
 ### Detection
-In this project, we use [HaGRID](github.com/hukenovs/hagrid) dataset for detection task. You can download the version of the dataset for YOLO here:
-[HAGRID-YOLO-V1](www.kaggle.com/datasets/khnhoquc/hagrid-yolo-v1)
+In this project, we use [HaGRID](https://github.com/hukenovs/hagrid) dataset for detection task. You can download the version of the dataset for YOLO here:
+* [HAGRID-YOLO-V1](https://www.kaggle.com/datasets/khnhoquc/hagrid-yolo-v1)
+
+### Classification
+For classification task, we use ***JESTER*** dataset. You can download it here:
+* [20BN_jester_V1_videos](https://www.kaggle.com/datasets/kylecloud/20bn-jester-v1-videos)
 
 ## Setup
 Setup directories: `Hand_Gesture/src`
