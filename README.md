@@ -12,14 +12,9 @@
 ...
 
 ## Setup
-Setup directories:
-```
-mkdir Hand_Gesture
-cd Hand_Gesture
-mkdir src
-cd src
-```
-Clone this repository in *src* folder.
+Setup directories: **Hand_Gesture/src**, `DirectoryName`
+
+Clone this repository in **src** folder.
 
 
 ## Execute
