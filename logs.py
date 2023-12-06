@@ -112,7 +112,7 @@ def eval_on_test(
     num_frames = 30
     batch_size = 1
     num_workers = 4 # Number of threads for data loading
-    small_version = True #HERE
+    small_version = False #HERE
     no_max_pool = True
     if no_max_pool:
         nmp = '_0-mp'
@@ -223,6 +223,7 @@ def main():
     with open('metrics.json', 'r') as json_file:
         loaded_metrics = json.load(json_file)
     
+    '''
     # Extract model parameter
     model_arch = loaded_metrics['model_arch']
     block_arch = loaded_metrics['block_arch']
@@ -233,6 +234,18 @@ def main():
     train_loss = loaded_metrics['train_loss']
     train_acc = loaded_metrics['train_acc']
     val_acc = loaded_metrics['val_acc']
+    '''
+    
+    # Extract model parameter
+    model_arch = 'r3d'
+    block_arch = 34
+    nmp = '_0-mp'
+    pre_trained = False
+    # Extract individual metrics lists
+    epochs = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    train_loss = [1.6, 0.447, 0.281, 0.188, 0.127, 0.028, 0.00859, 0.00217, 0.000491, 0.0000373]
+    train_acc = [0.511, 0.855, 0.91, 0.939, 0.958, 0.992, 0.998, 1, 1, 1]
+    val_acc = [0.708, 0.772, 0.81, 0.84, 0.847, 0.866, 0.863, 0.869, 0.866, 0.878]
     
     # Save the training metrics
     save_training_metrics(
