@@ -23,6 +23,7 @@ After clone this repository in `src`, run this command to install requirement pa
 ```
 ./setup.sh
 ```
+> **CAUTION:** You must have at least 70GB of available memory.
 
 ## Execute
 To train, evaluate models as well as run the program, you have to manually tune parameters from the source code.
