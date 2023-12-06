@@ -48,12 +48,12 @@ resize = (112, 112)
 num_frames = 30
 batch_size = 1
 num_workers = 4 # Number of threads for data loading
-small_version = True #HERE
+small_version = False
 ## Model parameters
 model_arch = 'r3d'
 block_arch = 50
 pre_trained = False
-pre_trained_path = '../models/classify/R3D/r3d-18_0-mp_10-epochs.pth'
+pre_trained_path = '../models/classify/R3D/r3d-50_0-mp_10-epochs.pth'
 if pre_trained:
     pre_trained_epochs = int(pre_trained_path.split('_')[-1].split('-')[0])
 else:
@@ -66,7 +66,7 @@ else:
 widen_factor = 1.0
 n_classes = 27
 ## Training parameters
-num_epochs = 1 #HERE
+num_epochs = 10
 learning_rate = 0.001
 decay_step = 5 # Decay the learning rate after n epochs
 gamma = 0.1 # Decay the learning rate by gamma
@@ -130,7 +130,7 @@ scheduler = StepLR(optimizer, step_size = decay_step, gamma = gamma)
 
 # Start training
 epochs, train_loss, train_acc, val_acc = [], [], [], [] # Define lists to store the training and validation metrics
-print('Start training...')
+print(f'Start training {model_arch.upper()}-{block_arch}{nmp} for {num_epochs} epochs')
 
 total_train_batches = len(train_loader) # Total number of train batches
 total_val_batches = len(val_loader) # Total number of validation batches
