@@ -27,6 +27,7 @@ mkdir detect classify
 cd ../src
 
 # Setup KAGGLE
+pwd
 export KAGGLE_CONFIG_DIR=data_preprocessing
 chmod 600 data_preprocessing/kaggle.json
 cd data_preprocessing
