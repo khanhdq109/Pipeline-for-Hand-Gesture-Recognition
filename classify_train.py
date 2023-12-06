@@ -23,7 +23,7 @@ def load_pretrained_weights(model, pre_trained_path, device):
         print('Pre-trained model loaded successfully!')
 
 def save_model(model, model_arch, block_arch, nmp, epoch, pre_trained_epochs):
-    name = f'/root/Hand_Gesture/models/classify/{model_arch.upper()}/{model_arch}-{block_arch}{nmp}_{epoch + pre_trained_epochs + 1}-epochs.pth'
+    name = f'../models/classify/{model_arch.upper()}/{model_arch}-{block_arch}{nmp}_{epoch + pre_trained_epochs + 1}-epochs.pth'
     torch.save(model.state_dict(), name)
     
 def save_metrics(metrics_dict, json_path):
@@ -48,7 +48,7 @@ resize = (112, 112)
 num_frames = 30
 batch_size = 1
 num_workers = 4 # Number of threads for data loading
-small_version = True
+small_version = True #HERE
 ## Model parameters
 model_arch = 'r3d'
 block_arch = 50
@@ -66,7 +66,7 @@ else:
 widen_factor = 1.0
 n_classes = 27
 ## Training parameters
-num_epochs = 1 
+num_epochs = 1 #HERE
 learning_rate = 0.001
 decay_step = 5 # Decay the learning rate after n epochs
 gamma = 0.1 # Decay the learning rate by gamma
@@ -74,7 +74,7 @@ validation_interval = 1 # Perform validation after every n epochs
 save_interval = 1 # Save model after every n epochs
 
 # Define dataset
-data_dir = '/root/Hand_Gesture/datasets/JESTER-V1'
+data_dir = '../datasets/JESTER-V1'
 
 # Define transformations
 transform = transforms.Compose([

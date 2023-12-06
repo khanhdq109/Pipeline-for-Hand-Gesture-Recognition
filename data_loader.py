@@ -97,7 +97,7 @@ class JesterV1(Dataset):
     
 def main():
     # Define dataset
-    data_dir = 'root\Hand_Gesture\datasets\JESTER-V1'
+    data_dir = '../datasets/JESTER-V1'
     batch_size = 8
     
     # Define transformations
