@@ -78,7 +78,12 @@ class TransitionLayer(nn.Module):
         return out
     
 class TemporalTransitionLayer(nn.Module):
-    pass
+    
+    def __init__(self, in_planes, stride = 1, phi = 0.5, dropout = 0.0):
+        pass 
+    
+    def forward(self, x):
+        pass
 
 class DenseNet(nn.Module):
     

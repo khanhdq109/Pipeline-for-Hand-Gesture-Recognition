@@ -3,7 +3,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from functools import partial
-from torchsummary import summary
 
 def get_inplanes():
     return [64, 128, 256, 512]
@@ -298,8 +297,7 @@ def main():
         n_classes = 27
     )
 
-    # print(model)
-    summary(model, (3, 30, 112, 112))
+    print(model)
     
 if __name__ == '__main__':
     main()
