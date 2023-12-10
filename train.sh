@@ -1,6 +1,4 @@
-python classify_train.py \
-    r3d \   # Model architecture
-    18 \    # Block architecture (depth)
-    0       # Pre-trained mode (0: Train from scratch, 1: Pre-trained on Jester)
-
+# Train the model from scratch or resume training from a checkpoint
+python classify_train.py 
+# Evaluate the model on the test set
 python logs.py
