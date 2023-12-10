@@ -11,7 +11,7 @@ class GestureRecognizer:
         model_path,
         model_arch = 'r3d', block_arch = 18,
         resize = (112, 112), num_frames = 30,
-        no_max_pool = True, n_classes = 28,
+        no_max_pool = True, n_classes = 27,
         drop_frame = 0
     ):
         # Model path
@@ -151,9 +151,10 @@ class GestureRecognizer:
 
 def main():
     program = GestureRecognizer(
-        model_path = '../models/classify/R3D/r3d-18_0-mp_9-epochs.pth',
-        model_arch = 'r3d', block_arch = 18,
-        drop_frame = 0
+        model_path = '../models/classify/R3D/r3d-34_0-mp_10-epochs.pth',
+        model_arch = 'r3d', block_arch = 34,
+        drop_frame = 0,
+        n_classes = 27
     )
     
     program.run()

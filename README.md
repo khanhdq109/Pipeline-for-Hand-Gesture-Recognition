@@ -3,9 +3,10 @@
 
 ## Project structure
 * [setup.sh](./setup.sh)                    : bash file to setup environment and download dataset
-* [train.sh](./train.sh)                    : bash file to train model from scratch or pre-trained models
-* [detect_eval.py](./detect_eval.py)        : evaluate detection module
-* [classify_eval.py](./classify_eval.py)    : evalutate classification module
+* [detect_train.py](./detect_train.py)      : train detection models
+* [train.sh](./train.sh)                    : bash file to train classify models from scratch or pre-trained models
+* [detect_eval.py](./detect_eval.py)        : evaluate detection models
+* [classify_eval.py](./classify_eval.py)    : evalutate classification models
 * [program.py](./program.py)                : run the program on real-time camera
 
 ## Dataset
@@ -23,7 +24,7 @@ After clone this repository in `src`, run this command to install requirement pa
 ```
 ./setup.sh
 ```
-> **CAUTION:** You must have at least 70GB of available memory.
+> **CAUTION:** You must have at least 70GB of memory available.
 
 ## Execute
 To train, evaluate models as well as run the program, you have to manually tune parameters from the source code.
