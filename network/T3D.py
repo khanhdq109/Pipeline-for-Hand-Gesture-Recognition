@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from torchsummary import summary
+# from torchsummary import summary
 
 def conv3x3x3(in_planes, out_planes, stride = 1):
     return nn.Conv3d(
@@ -166,6 +166,10 @@ class DenseNet(nn.Module):
             is_first = False
         )
         
+        # Final batch norm
+        self.bn = nn.BatchNorm3d(self.in_planes)
+        self.relu = nn.ReLU(inplace = True)
+        
         self.avgpool = nn.AdaptiveAvgPool3d((1, 1, 1))
         self.fc = nn.Linear(self.in_planes, n_classes)
         
@@ -212,6 +216,8 @@ class DenseNet(nn.Module):
         x = self.trans3(x)
         
         x = self.block4(x)
+        x = self.bn(x)
+        x = self.relu(x)
         
         x = self.avgpool(x)
         
@@ -293,8 +299,8 @@ def main():
         dropout = 0.0
     )
     
-    # print(model)
-    summary(model, (3, 30, 112, 112))
+    print(model)
+    # summary(model, (3, 30, 112, 112))
     
 if __name__ == '__main__':
     main()
