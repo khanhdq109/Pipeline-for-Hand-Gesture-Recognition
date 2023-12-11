@@ -112,7 +112,7 @@ def eval_on_test(
     num_frames = 30
     batch_size = 1
     num_workers = 4 # Number of threads for data loading
-    small_version = True
+    small_version = False
     phi = 0.5
     growth_rate = 12
     no_max_pool = True
@@ -120,7 +120,7 @@ def eval_on_test(
         nmp = '_0-mp'
     else:
         nmp = '_1-mp'
-    widen_factor = 1.0
+    # widen_factor = 1.0
     dropout = 0.0
     n_classes = 27
     
