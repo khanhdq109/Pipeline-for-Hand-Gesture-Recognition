@@ -158,7 +158,7 @@ def eval_on_test(
         no_max_pool = no_max_pool,
         n_classes = n_classes,
         dropout = dropout,
-    )
+    ).to(device)
     
     name = f'../models/classify/{model_arch.upper()}/{model_arch}-{block_arch}{nmp}_{epoch}-epochs.pth'
     model.load_state_dict(
