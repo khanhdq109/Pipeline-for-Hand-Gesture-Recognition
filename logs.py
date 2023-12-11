@@ -112,7 +112,7 @@ def eval_on_test(
     num_frames = 30
     batch_size = 1
     num_workers = 4 # Number of threads for data loading
-    small_version = True #HERE
+    small_version = False
     no_max_pool = True
     if no_max_pool:
         nmp = '_0-mp'
