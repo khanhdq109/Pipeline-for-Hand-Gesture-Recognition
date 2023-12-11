@@ -60,7 +60,7 @@ if pre_trained:
     pre_trained_epochs = int(pre_trained_path.split('_')[-1].split('-')[0])
 else:
     pre_trained_epochs = 0
-no_max_pool = True
+no_max_pool = False
 if no_max_pool:
     nmp = '_0-mp'
 else:
