@@ -22,6 +22,24 @@ def conv1x1x1(in_planes, out_planes, stride = 1):
         stride = stride,
         bias = False
     )
+    
+def downsample(x, x1, x2, x3):
+    """ 
+        Crop x1, x2, x3 to the shape of x along the temporal (2) dimension
+    """
+    # Compare shapes and crop individually
+    crop_size1 = max(x1.size(2) - x.size(2), 0)
+    crop_size2 = max(x2.size(2) - x.size(2), 0)
+    crop_size3 = max(x3.size(2) - x.size(2), 0)
+    
+    if crop_size1 > 0:
+        x1 = x1[:, :, :-crop_size1, :, :]
+    if crop_size2 > 0:
+        x2 = x2[:, :, :-crop_size2, :, :]
+    if crop_size3 > 0:
+        x3 = x3[:, :, :-crop_size3, :, :]
+    
+    return x1, x2, x3
 
 class DenseLayer(nn.Module):
     expansion = 4
@@ -50,7 +68,7 @@ class DenseLayer(nn.Module):
         if self.dropout > 0:
             out = F.dropout(out, p = self.dropout, training = self.training)
         
-        return torch.cat([x, out], 1)
+        return torch.cat((x, out), 1)
     
 class TransitionLayer(nn.Module):
     
@@ -132,7 +150,10 @@ class TemporalTransitionLayer(nn.Module):
         out1 = self.conv1(out)
         out2 = self.conv2(out)
         out3 = self.conv3(out)
-        out = torch.cat([out1, out2, out3], 1)
+        
+        out1, out2, out3 = downsample(out, out1, out2, out3)
+        
+        out = torch.cat((out1, out2, out3), 1)
         
         out = self.bn2(out)
         out = self.relu(out)
@@ -153,6 +174,9 @@ class DenseNet(nn.Module):
         layers, # number of layers for each dense block
         phi = 0.5, # compression factor
         growth_rate = 12, # growth rate
+        temporal_expansion = 1, # temporal expansion factor
+        transition_t1_size = [1, 3, 6], # kernel size in t for the first transition conv
+        transition_t_size = [1, 3, 4], # kernel size in t for the other transition conv
         n_input_channels = 3, # number of input channels
         conv1_t_size = 7, # kernel size in t for the first conv layer
         conv1_t_stride = 1, # stride in t for the first conv layer
@@ -179,7 +203,7 @@ class DenseNet(nn.Module):
         )
         self.maxpool = nn.MaxPool3d(
             kernel_size = 3,
-            stride = 2,
+            stride = 1,
             padding = 1
         )
         
@@ -192,8 +216,9 @@ class DenseNet(nn.Module):
         if isinstance(transition, TemporalTransitionLayer):
             self.trans1 = transition(
                 self.in_planes,
-                t_size = [1, 3, 6],
+                t_size = transition_t1_size,
                 growth_rate = growth_rate,
+                expansion = temporal_expansion,
                 phi = phi,
                 dropout = dropout
             )
@@ -213,8 +238,9 @@ class DenseNet(nn.Module):
         if isinstance(transition, TemporalTransitionLayer):
             self.trans2 = transition(
                 self.in_planes,
-                t_size = [1, 3, 4],
+                t_size = transition_t_size,
                 growth_rate = growth_rate,
+                expansion = temporal_expansion,
                 phi = phi,
                 dropout = dropout
             )
@@ -234,8 +260,9 @@ class DenseNet(nn.Module):
         if isinstance(transition, TemporalTransitionLayer):
             self.trans3 = transition(
                 self.in_planes,
-                t_size = [1, 3, 4],
+                t_size = transition_t_size,
                 growth_rate = growth_rate,
+                expansion = temporal_expansion,
                 phi = phi,
                 dropout = dropout
             )
@@ -374,14 +401,31 @@ def T3D(model_depth, **kwargs):
     return model
 
 def main():
+    """
     model = D3D(
         121,
         phi = 0.5,
         growth_rate = 12,
         n_input_channels = 3,
-        conv1_t_size = 7,
+        conv1_t_size = 3,
         conv1_t_stride = 1,
-        no_max_pool = True,
+        no_max_pool = False,
+        n_classes = 27,
+        dropout = 0.0
+    )
+    """
+    
+    model = T3D(
+        121,
+        phi = 0.5,
+        growth_rate = 12,
+        temporal_expansion = 1,
+        transition_t1_size = [1, 3, 6],
+        transition_t_size = [1, 3, 4],
+        n_input_channels = 3,
+        conv1_t_size = 3,
+        conv1_t_stride = 1,
+        no_max_pool = False,
         n_classes = 27,
         dropout = 0.0
     )
