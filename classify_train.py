@@ -60,7 +60,7 @@ if pre_trained:
     pre_trained_epochs = int(pre_trained_path.split('_')[-1].split('-')[0])
 else:
     pre_trained_epochs = 0
-no_max_pool = False
+no_max_pool = True
 if no_max_pool:
     nmp = '_0-mp'
 else:
@@ -115,12 +115,29 @@ model = D3D(
     phi = phi,
     growth_rate = growth_rate,
     n_input_channels = 3,
-    conv1_t_size = 7,
+    conv1_t_size = 3,
     conv1_t_stride = 1,
     no_max_pool = no_max_pool,
     n_classes = n_classes,
     dropout = dropout
-)
+).to(device)
+
+"""
+model = T3D(
+    block_arch,
+    phi = phi,
+    growth_rate = growth_rate,
+    temporal_expansion = 1,
+    transition_t1_size = [1, 3, 6],
+    transition_t_size = [1, 3, 4],
+    n_input_channels = 3,
+    conv1_t_size = 3,
+    conv1_t_stride = 1,
+    no_max_pool = no_max_pool,
+    n_classes = n_classes,
+    dropout = dropout
+).to(device)
+"""
 
 # Load pre-trained weights if pre_trained is True
 if pre_trained:
