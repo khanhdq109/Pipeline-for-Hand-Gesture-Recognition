@@ -46,7 +46,7 @@ print('Selected device:', device)
 ## Data parameters
 resize = (112, 112)
 num_frames = 30
-batch_size = 3
+batch_size = 1
 num_workers = 24 # Number of threads for data loading
 small_version = False
 ## Model parameters
