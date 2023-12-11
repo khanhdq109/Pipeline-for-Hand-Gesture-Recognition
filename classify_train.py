@@ -48,7 +48,7 @@ resize = (112, 112)
 num_frames = 30
 batch_size = 1
 num_workers = 4 # Number of threads for data loading
-small_version = False
+small_version = True
 ## Model parameters
 model_arch = 'd3d'
 block_arch = 121
