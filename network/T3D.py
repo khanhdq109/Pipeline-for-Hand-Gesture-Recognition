@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-# from torchsummary import summary
+from torchsummary import summary
 
 def conv3x3x3(in_planes, out_planes, stride = 1):
     return nn.Conv3d(
@@ -79,11 +79,71 @@ class TransitionLayer(nn.Module):
     
 class TemporalTransitionLayer(nn.Module):
     
-    def __init__(self, in_planes, stride = 1, phi = 0.5, dropout = 0.0):
-        pass 
+    def __init__(
+        self, in_planes, t_size = [1, 3, 4], growth_rate = 12, expansion = 1,
+        stride = 1, phi = 0.5, dropout = 0.0
+    ):
+        super().__init__()
+        
+        self.bn1 = nn.BatchNorm3d(in_planes)
+        self.relu = nn.ReLU(inplace = True)
+        self.conv1 = nn.Conv3d(
+            in_planes,
+            growth_rate * expansion,
+            kernel_size = (t_size[0], 1, 1),
+            stride = 1,
+            padding = (t_size[0] // 2, 0, 0),
+            bias = False
+        )
+        self.conv2 = nn.Conv3d(
+            in_planes,
+            growth_rate * expansion,
+            kernel_size = (t_size[1], 3, 3),
+            stride = 1,
+            padding = (t_size[1] // 2, 1, 1),
+            bias = False
+        )
+        self.conv3 = nn.Conv3d(
+            in_planes,
+            growth_rate * expansion,
+            kernel_size = (t_size[2], 3, 3),
+            stride = 1,
+            padding = (t_size[2] // 2, 1, 1),
+            bias = False
+        )
+        
+        self.bn2 = nn.BatchNorm3d(growth_rate * expansion * 3)
+        self.conv4 = nn.Conv3d(
+            growth_rate * expansion * 3,
+            int(in_planes * phi),
+            kernel_size = 1,
+            stride = stride,
+            bias = False
+        )
+        
+        self.pool = nn.AvgPool3d(kernel_size = 2, stride = 2)
+        
+        self.dropout = dropout
     
     def forward(self, x):
-        pass
+        out = self.bn1(x)
+        out = self.relu(out)
+        
+        out1 = self.conv1(out)
+        out2 = self.conv2(out)
+        out3 = self.conv3(out)
+        out = torch.cat([out1, out2, out3], 1)
+        
+        out = self.bn2(out)
+        out = self.relu(out)
+        out = self.conv4(out)
+        
+        if self.dropout > 0:
+            out = F.dropout(out, p = self.dropout, training = self.training)
+        
+        out = self.pool(out)
+        
+        return out
 
 class DenseNet(nn.Module):
     
@@ -129,11 +189,20 @@ class DenseNet(nn.Module):
             dropout = dropout,
             is_first = True
         )
-        self.trans1 = transition(
-            self.in_planes,
-            phi = phi,
-            dropout = dropout
-        )
+        if isinstance(transition, TemporalTransitionLayer):
+            self.trans1 = transition(
+                self.in_planes,
+                t_size = [1, 3, 6],
+                growth_rate = growth_rate,
+                phi = phi,
+                dropout = dropout
+            )
+        else:
+            self.trans1 = transition(
+                self.in_planes,
+                phi = phi,
+                dropout = dropout
+            )
         
         # Block 2
         self.block2 = self._make_dense_block(
@@ -141,11 +210,20 @@ class DenseNet(nn.Module):
             dropout = dropout,
             is_first = False
         )
-        self.trans2 = transition(
-            self.in_planes,
-            phi = phi,
-            dropout = dropout
-        )
+        if isinstance(transition, TemporalTransitionLayer):
+            self.trans2 = transition(
+                self.in_planes,
+                t_size = [1, 3, 4],
+                growth_rate = growth_rate,
+                phi = phi,
+                dropout = dropout
+            )
+        else: 
+            self.trans2 = transition(
+                self.in_planes,
+                phi = phi,
+                dropout = dropout
+            )
         
         # Block 3
         self.block3 = self._make_dense_block(
@@ -153,11 +231,20 @@ class DenseNet(nn.Module):
             dropout = dropout,
             is_first = False
         )
-        self.trans3 = transition(
-            self.in_planes,
-            phi = phi,
-            dropout = dropout
-        )
+        if isinstance(transition, TemporalTransitionLayer):
+            self.trans3 = transition(
+                self.in_planes,
+                t_size = [1, 3, 4],
+                growth_rate = growth_rate,
+                phi = phi,
+                dropout = dropout
+            )
+        else:
+            self.trans3 = transition(
+                self.in_planes,
+                phi = phi,
+                dropout = dropout
+            )
         
         # Block 4
         self.block4 = self._make_dense_block(
@@ -299,8 +386,8 @@ def main():
         dropout = 0.0
     )
     
-    print(model)
-    # summary(model, (3, 30, 112, 112))
+    # print(model)
+    summary(model, (3, 30, 112, 112))
     
 if __name__ == '__main__':
     main()
