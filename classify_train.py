@@ -47,7 +47,7 @@ print('Selected device:', device)
 resize = (112, 112)
 num_frames = 30
 batch_size = 2
-num_workers = 2 # Number of threads for data loading
+num_workers = 1 # Number of threads for data loading
 small_version = False
 ## Model parameters
 model_arch = 'd3d'
