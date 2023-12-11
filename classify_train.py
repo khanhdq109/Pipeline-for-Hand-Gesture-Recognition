@@ -9,7 +9,7 @@ from torch.utils.data import DataLoader
 from torchvision import transforms
 
 from data_loader import JesterV1
-from network.T3D import D3D
+from network.T3D import T3D
 
 """
     Support functions
@@ -46,11 +46,11 @@ print('Selected device:', device)
 ## Data parameters
 resize = (112, 112)
 num_frames = 30
-batch_size = 2
-num_workers = 1 # Number of threads for data loading
-small_version = False
+batch_size = 1
+num_workers = 4 # Number of threads for data loading
+small_version = True
 ## Model parameters
-model_arch = 'd3d'
+model_arch = 't3d'
 block_arch = 121
 phi = 0.5
 growth_rate = 12
@@ -69,7 +69,7 @@ widen_factor = 1.0
 dropout = 0.0
 n_classes = 27
 ## Training parameters
-num_epochs = 10
+num_epochs = 1
 learning_rate = 0.001
 decay_step = 5 # Decay the learning rate after n epochs
 gamma = 0.1 # Decay the learning rate by gamma
@@ -110,6 +110,7 @@ train_loader = DataLoader(train_dataset, batch_size = batch_size, shuffle = True
 val_loader = DataLoader(val_dataset, batch_size = batch_size, shuffle = True, num_workers = num_workers) # Validation data loader
 
 # Define model
+"""
 model = D3D(
     block_arch,
     phi = phi,
@@ -121,8 +122,8 @@ model = D3D(
     n_classes = n_classes,
     dropout = dropout
 ).to(device)
-
 """
+
 model = T3D(
     block_arch,
     phi = phi,
@@ -137,7 +138,6 @@ model = T3D(
     n_classes = n_classes,
     dropout = dropout
 ).to(device)
-"""
 
 # Load pre-trained weights if pre_trained is True
 if pre_trained:

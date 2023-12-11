@@ -53,11 +53,6 @@ class JesterV1(Dataset):
         frames = self.load_frames(video_path)
         label = self.annotations[idx][1]
         
-        # Check and handle variable frame sizes (assuming 3D frames)
-        min_height = min(frame.shape[0] for frame in frames)
-        min_width = min(frame.shape[1] for frame in frames)
-        frames = [frame[:min_height, :min_width, :] for frame in frames]
-        
         # Apply transformations
         if self.transform:
             frames = [self.transform(frame) for frame in frames]
