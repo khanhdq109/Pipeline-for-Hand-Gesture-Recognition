@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from functools import partial
-# from torchsummary import summary
+from torchsummary import summary
 
 def get_inplanes():
     return [64, 128, 256, 512]
@@ -289,7 +289,7 @@ def R3D(model_depth, **kwargs):
 
 def main():
     model = R3D(
-        34,
+        50,
         n_input_channels = 3,
         conv1_t_size = 7,
         conv1_t_stride = 1,
@@ -298,7 +298,7 @@ def main():
         n_classes = 27
     )
 
-    # summary(model, (3, 30, 112, 112))
+    summary(model, (3, 30, 112, 112))
     
 if __name__ == '__main__':
     main()

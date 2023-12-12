@@ -2,11 +2,55 @@ import os
 from skimage import io
 
 import torch
-from torch.utils.data import Dataset, DataLoader
-from torchvision import transforms
+import torch.nn.functional as F
+from torch.utils.data import Dataset
 
 import warnings
 warnings.filterwarnings('ignore', message = 'The default value of the antialias parameter of all the resizing transforms*')
+
+def fill_missing_frames(frames, target_temporal):
+    original_temporal = frames.shape[1]
+    if original_temporal >= target_temporal:
+        return frames
+
+    missing = target_temporal - original_temporal
+    for i in missing:
+        frames = torch.cat(
+            [frames, frames[:, -1, :, :].unsqueeze(2)], 
+            dim = 1
+        )
+        
+    return frames
+
+def collate_fn(batch):
+    # Separate frames and labels
+    frames, labels = zip(*batch)
+    
+    # Stack frames into tensor (B x C x T x H x W)
+    frames = torch.stack(frames, dim = 0)
+    
+    # Find the maximum height, width and temporal length
+    max_temporal = max(video.shape[1] for video in frames)
+    max_height = max(video.shape[2] for video in frames)
+    max_width = max(video.shape[3] for video in frames)
+    
+    # Fill missing frames in the temporal dimension
+    frames = [fill_missing_frames(video, max_temporal) for video in frames]
+
+    # Pad each frame to the maximum height and width
+    frames = [
+        F.pad(
+            video,
+            (0, max_width - video.shape[3], 0, max_height - video.shape[2]),
+            value = 0
+        )
+        for video in frames
+    ]
+    
+    # Stack frames into tensor (B x C x T x H x W)
+    frames = torch.stack(frames, dim = 0)
+    
+    return frames, torch.tensor(labels)
 
 class JesterV1(Dataset):
     def __init__(self, data_dir, num_frames = 30, transform = None, mode = 'train', small = False):
@@ -94,16 +138,17 @@ class JesterV1(Dataset):
             frames.append(frame)
        
         return frames
-    
+
+"""
 def main():
     # Define dataset
     data_dir = '../datasets/JESTER-V1'
-    batch_size = 8
+    batch_size = 6
     
     # Define transformations
     transform = transforms.Compose([
         transforms.ToTensor(),
-        transforms.Resize((96, 96)),
+        transforms.Resize((112, 112)),
         transforms.Normalize(
             mean = [0.485, 0.456, 0.406],
             std = [0.229, 0.224, 0.225]
@@ -120,7 +165,7 @@ def main():
     )
     
     # Create a DataLoader
-    data_loader = DataLoader(dataset, batch_size = batch_size, shuffle = False)
+    data_loader = DataLoader(dataset, batch_size = batch_size, shuffle = False, collate_fn = collate_fn)
     
     # Length of DataLoader
     print("Number of batches:", len(data_loader))
@@ -134,4 +179,4 @@ def main():
 
 if __name__ == '__main__':
     main()
-    
+"""

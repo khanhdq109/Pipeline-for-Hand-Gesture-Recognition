@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-# from torchsummary import summary
+from torchsummary import summary
 
 def conv3x3x3(in_planes, out_planes, stride = 1):
     return nn.Conv3d(
@@ -430,7 +430,7 @@ def main():
         dropout = 0.0
     )
     
-    # summary(model, (3, 30, 112, 112))
+    summary(model, (3, 30, 112, 112))
     
 if __name__ == '__main__':
     main()
