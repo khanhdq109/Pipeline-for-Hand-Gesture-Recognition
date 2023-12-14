@@ -27,12 +27,6 @@ def collate_fn(batch):
     # Separate frames and labels
     frames, labels = zip(*batch)
     
-    # Find the temporal length
-    max_temporal = max(video.shape[1] for video in frames)
-    
-    # Fill missing frames in the temporal dimension
-    frames = [fill_missing_frames(video, max_temporal) for video in frames]
-    
     # Find the maximum height, width
     max_height = max(video.shape[2] for video in frames)
     max_width = max(video.shape[3] for video in frames)
@@ -46,6 +40,12 @@ def collate_fn(batch):
         )
         for video in frames
     ]
+    
+    # Find the temporal length
+    max_temporal = max(video.shape[1] for video in frames)
+    
+    # Fill missing frames in the temporal dimension
+    frames = [fill_missing_frames(video, max_temporal) for video in frames]
     
     # Stack frames into tensor (B x C x T x H x W)
     frames = torch.stack(frames, dim = 0)
