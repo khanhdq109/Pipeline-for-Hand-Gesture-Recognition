@@ -3,8 +3,8 @@ from skimage import io
 
 import torch
 import torch.nn.functional as F
-from torch.utils.data import Dataset, DataLoader
-from torchvision import transforms
+from torch.utils.data import Dataset
+# from torchvision import transforms
 
 import warnings
 warnings.filterwarnings('ignore', message = 'The default value of the antialias parameter of all the resizing transforms*')
@@ -140,6 +140,7 @@ class JesterV1(Dataset):
        
         return frames
 
+'''
 def main():
     # Define dataset
     data_dir = '../datasets/JESTER-V1'
@@ -179,3 +180,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+'''

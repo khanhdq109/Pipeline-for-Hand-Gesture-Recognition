@@ -17,7 +17,8 @@ from torch.utils.data import DataLoader
 from torchvision import transforms
 
 from data_loader import JesterV1
-from network.T3D import T3D
+# from network.T3D import T3D
+from network.R3D import R3D
 
 def save_training_metrics(
     model_arch, block_arch, nmp, pre_trained,
@@ -116,6 +117,7 @@ def eval_on_test(
     phi = 0.5
     growth_rate = 12
     no_max_pool = True
+    widen_factor = 1.0
     if no_max_pool:
         nmp = '_0-mp'
     else:
@@ -148,6 +150,16 @@ def eval_on_test(
     test_loader = DataLoader(test_dataset, batch_size = batch_size, shuffle = True, num_workers = num_workers)
     
     # Load model
+    model = R3D(
+        18,
+        n_input_channels = 3,
+        conv1_t_size = 7,
+        conv1_t_stride = 1,
+        no_max_pool = no_max_pool,
+        widen_factor = widen_factor,
+        n_classes = n_classes
+    ).to(device)
+    
     """
     model = D3D(
         block_arch,
@@ -162,6 +174,7 @@ def eval_on_test(
     ).to(device)
     """
     
+    """
     model = T3D(
         block_arch,
         phi = phi,
@@ -176,6 +189,7 @@ def eval_on_test(
         n_classes = n_classes,
         dropout = dropout
     ).to(device)
+    """
     
     name = f'../models/classify/{model_arch.upper()}/{model_arch}-{block_arch}{nmp}_{epoch}-epochs.pth'
     model.load_state_dict(
