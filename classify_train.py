@@ -52,7 +52,7 @@ num_workers = 8 # Number of threads for data loading
 small_version = False
 ## Model parameters
 model_arch = 'r3d'
-block_arch = 18
+block_arch = 32
 phi = 0.5
 growth_rate = 12
 pre_trained = False
