@@ -48,7 +48,7 @@ print('Selected device:', device)
 resize = (112, 112)
 num_frames = 30
 batch_size = 32
-num_workers = 16 # Number of threads for data loading
+num_workers = 8 # Number of threads for data loading
 small_version = False
 ## Model parameters
 model_arch = 'r3d'
