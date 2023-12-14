@@ -8,7 +8,7 @@ from torch.optim.lr_scheduler import StepLR
 from torch.utils.data import DataLoader
 from torchvision import transforms
 
-from data_loader import JesterV1
+from data_loader import JesterV1, collate_fn
 from network.T3D import T3D
 
 """
@@ -106,8 +106,8 @@ val_dataset = JesterV1(
 ) # Validation dataset
 
 # Create a DataLoader
-train_loader = DataLoader(train_dataset, batch_size = batch_size, shuffle = True, num_workers = num_workers) # Train data loader
-val_loader = DataLoader(val_dataset, batch_size = batch_size, shuffle = True, num_workers = num_workers) # Validation data loader
+train_loader = DataLoader(train_dataset, batch_size = batch_size, shuffle = True, num_workers = num_workers, collate_fn = collate_fn) # Train data loader
+val_loader = DataLoader(val_dataset, batch_size = batch_size, shuffle = True, num_workers = num_workers, collate_fn = collate_fn) # Validation data loader
 
 # Define model
 """
