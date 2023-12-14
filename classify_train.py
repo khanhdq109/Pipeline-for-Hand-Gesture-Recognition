@@ -9,8 +9,8 @@ from torch.utils.data import DataLoader
 from torchvision import transforms
 
 from data_loader import JesterV1, collate_fn
-# from network.T3D import T3D
-from network.R3D import R3D
+from network.T3D import T3D
+# from network.R3D import R3D
 
 """
     Support functions
@@ -51,8 +51,8 @@ batch_size = 8
 num_workers = 8 # Number of threads for data loading
 small_version = False
 ## Model parameters
-model_arch = 'r3d'
-block_arch = 18
+model_arch = 't3d'
+block_arch = 121
 phi = 0.5
 growth_rate = 12
 pre_trained = False
@@ -111,6 +111,7 @@ train_loader = DataLoader(train_dataset, batch_size = batch_size, shuffle = True
 val_loader = DataLoader(val_dataset, batch_size = batch_size, shuffle = True, num_workers = num_workers, collate_fn = collate_fn) # Validation data loader
 
 # Define model
+"""
 model = R3D(
     18,
     n_input_channels = 3,
@@ -120,6 +121,7 @@ model = R3D(
     widen_factor = widen_factor,
     n_classes = n_classes
 ).to(device)
+"""
 
 """
 model = D3D(
@@ -135,7 +137,6 @@ model = D3D(
 ).to(device)
 """
 
-"""
 model = T3D(
     block_arch,
     phi = phi,
@@ -150,7 +151,6 @@ model = T3D(
     n_classes = n_classes,
     dropout = dropout
 ).to(device)
-"""
 
 # Load pre-trained weights if pre_trained is True
 if pre_trained:
