@@ -169,6 +169,8 @@ print(f'Start training {model_arch.upper()}-{block_arch}{nmp} for {num_epochs} e
 
 total_train_batches = len(train_loader) # Total number of train batches
 total_val_batches = len(val_loader) # Total number of validation batches
+total_train_samples = train_dataset.__len__() # Total number of train samples
+total_val_samples = val_dataset.__len__() # Total number of validation samples
 for epoch in range(num_epochs):
     # Set the model to train mode
     model.train()
@@ -201,7 +203,7 @@ for epoch in range(num_epochs):
             pbar.set_postfix({'Train Loss': loss.item()}, refresh = False)
         
         # Calculate the average loss and training accuracy
-        average_loss = total_loss / train_dataset.__len__()
+        average_loss = total_loss / total_train_samples
         train_accuracy = total_correct / train_dataset.__len__()
         # Update the progress bar
         pbar.set_postfix({'Average Loss': average_loss, 'Training Accuracy': train_accuracy})
@@ -236,7 +238,7 @@ for epoch in range(num_epochs):
                     pbar.update(1)
             
             # Calculate validation accuracy
-            val_accuracy = total_correct / val_dataset.__len__()
+            val_accuracy = total_correct / total_val_samples
             # Update the progress bar
             pbar.set_postfix({'Validation Accuracy': val_accuracy})
             
