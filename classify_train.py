@@ -47,12 +47,12 @@ print('Selected device:', device)
 ## Data parameters
 resize = (112, 112)
 num_frames = 30
-batch_size = 16
-num_workers = 8 # Number of threads for data loading
+batch_size = 32
+num_workers = 16 # Number of threads for data loading
 small_version = False
 ## Model parameters
 model_arch = 'r3d'
-block_arch = 32
+block_arch = 18
 phi = 0.5
 growth_rate = 12
 pre_trained = False
