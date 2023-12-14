@@ -201,8 +201,8 @@ for epoch in range(num_epochs):
             pbar.set_postfix({'Train Loss': loss.item()}, refresh = False)
         
         # Calculate the average loss and training accuracy
-        average_loss = total_loss / total_train_batches
-        train_accuracy = total_correct / total_train_batches
+        average_loss = total_loss / train_dataset.__len__()
+        train_accuracy = total_correct / train_dataset.__len__()
         # Update the progress bar
         pbar.set_postfix({'Average Loss': average_loss, 'Training Accuracy': train_accuracy})
         
@@ -236,7 +236,7 @@ for epoch in range(num_epochs):
                     pbar.update(1)
             
             # Calculate validation accuracy
-            val_accuracy = total_correct / total_val_batches
+            val_accuracy = total_correct / val_dataset.__len__()
             # Update the progress bar
             pbar.set_postfix({'Validation Accuracy': val_accuracy})
             

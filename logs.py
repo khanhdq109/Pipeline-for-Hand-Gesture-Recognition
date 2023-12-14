@@ -226,7 +226,7 @@ def eval_on_test(
                 pbar.update(1)
                 
         # Calculate test accuracy
-        test_accuracy = total_correct / total_test_batches
+        test_accuracy = total_correct / test_dataset.__len__()
         pbar.set_postfix({'Test Accuracy': test_accuracy})
         
         # Calculate Precision, Recall and F1-score for each class
