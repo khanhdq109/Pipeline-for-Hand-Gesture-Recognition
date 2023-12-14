@@ -10,6 +10,7 @@ import warnings
 warnings.filterwarnings('ignore', message = 'The default value of the antialias parameter of all the resizing transforms*')
 
 def fill_missing_frames(frames, target_temporal):
+    # frames: (C x T x H x W)
     original_temporal = frames.shape[1]
     if original_temporal >= target_temporal:
         return frames
