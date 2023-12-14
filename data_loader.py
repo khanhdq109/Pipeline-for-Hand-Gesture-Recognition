@@ -3,7 +3,8 @@ from skimage import io
 
 import torch
 import torch.nn.functional as F
-from torch.utils.data import Dataset
+from torch.utils.data import Dataset, DataLoader
+from torchvision import transforms
 
 import warnings
 warnings.filterwarnings('ignore', message = 'The default value of the antialias parameter of all the resizing transforms*')
@@ -26,16 +27,15 @@ def collate_fn(batch):
     # Separate frames and labels
     frames, labels = zip(*batch)
     
-    # Stack frames into tensor (B x C x T x H x W)
-    frames = torch.stack(frames, dim = 0)
-    
-    # Find the maximum height, width and temporal length
+    # Find the temporal length
     max_temporal = max(video.shape[1] for video in frames)
-    max_height = max(video.shape[2] for video in frames)
-    max_width = max(video.shape[3] for video in frames)
     
     # Fill missing frames in the temporal dimension
     frames = [fill_missing_frames(video, max_temporal) for video in frames]
+    
+    # Find the maximum height, width
+    max_height = max(video.shape[2] for video in frames)
+    max_width = max(video.shape[3] for video in frames)
 
     # Pad each frame to the maximum height and width
     frames = [
@@ -139,7 +139,6 @@ class JesterV1(Dataset):
        
         return frames
 
-"""
 def main():
     # Define dataset
     data_dir = '../datasets/JESTER-V1'
@@ -179,4 +178,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-"""
