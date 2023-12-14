@@ -18,8 +18,9 @@ def fill_missing_frames(frames, target_temporal):
 
     missing = target_temporal - original_temporal
     for i in range(missing):
+        added = frames[:, -1, :, :].unsqueeze(1)
         frames = torch.cat(
-            [frames, frames[:, -1, :, :].unsqueeze(2)], 
+            [frames, added], 
             dim = 1
         )
         
