@@ -110,9 +110,9 @@ def eval_on_test(
     # Set parameters
     resize = (112, 112)
     num_frames = 30
-    batch_size = 1 #HERE
-    num_workers = 8 # Number of threads for data loading #HERE
-    small_version = True #HERE
+    batch_size = 1
+    num_workers = 8 # Number of threads for data loading
+    small_version = False
     phi = 0.5
     growth_rate = 12
     no_max_pool = True

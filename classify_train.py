@@ -46,9 +46,9 @@ print('Selected device:', device)
 ## Data parameters
 resize = (112, 112)
 num_frames = 30
-batch_size = 2 #HERE
-num_workers = 8 # Number of threads for data loading #HERE
-small_version = True #HERE
+batch_size = 8
+num_workers = 8 # Number of threads for data loading
+small_version = False
 ## Model parameters
 model_arch = 't3d'
 block_arch = 121
@@ -69,7 +69,7 @@ widen_factor = 1.0
 dropout = 0.0
 n_classes = 27
 ## Training parameters
-num_epochs = 1 #HERE
+num_epochs = 10
 learning_rate = 0.001
 decay_step = 5 # Decay the learning rate after n epochs
 gamma = 0.1 # Decay the learning rate by gamma
