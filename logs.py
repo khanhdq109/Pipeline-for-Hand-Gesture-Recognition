@@ -38,7 +38,8 @@ def save_training_metrics(
             'train_acc': train_acc,
             'val_acc': val_acc,
         }
-        log = log.append(pd.DataFrame(new_metrics), ignore_index = True)
+        new_metrics_df = pd.DataFrame(new_metrics)
+        log = pd.concat([log, new_metrics_df], ignore_index = True)
         # Save the log
         log.to_csv(f'logs/{model_arch}-{block_arch}{nmp}/train.csv', index = False)
     else:
