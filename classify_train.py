@@ -55,7 +55,7 @@ block_arch = 121
 phi = 0.5
 growth_rate = 12
 pre_trained = True
-pre_trained_path = '..\models\classify\T3D\\t3d-121_0-mp_10-epochs.pth'
+pre_trained_path = '../models/classify/T3D/t3d-121_0-mp_10-epochs.pth'
 if pre_trained:
     pre_trained_epochs = int(pre_trained_path.split('_')[-1].split('-')[0])
 else:
