@@ -10,7 +10,6 @@ from torchvision import transforms
 
 from data_loader import JesterV1, collate_fn
 from network.T3D import T3D
-# from network.R3D import R3D
 
 """
     Support functions
@@ -49,14 +48,14 @@ resize = (112, 112)
 num_frames = 30
 batch_size = 8
 num_workers = 8 # Number of threads for data loading
-small_version = False
+small_version = True #HERE
 ## Model parameters
 model_arch = 't3d'
 block_arch = 121
 phi = 0.5
 growth_rate = 12
-pre_trained = False
-pre_trained_path = 'your_model.pth'
+pre_trained = True
+pre_trained_path = '..\models\classify\T3D\\t3d-121_0-mp_10-epochs.pth'
 if pre_trained:
     pre_trained_epochs = int(pre_trained_path.split('_')[-1].split('-')[0])
 else:
@@ -70,7 +69,7 @@ widen_factor = 1.0
 dropout = 0.0
 n_classes = 27
 ## Training parameters
-num_epochs = 10
+num_epochs = 1 #HERE 15
 learning_rate = 0.001
 decay_step = 5 # Decay the learning rate after n epochs
 gamma = 0.1 # Decay the learning rate by gamma
@@ -203,8 +202,8 @@ for epoch in range(num_epochs):
             pbar.set_postfix({'Train Loss': loss.item()}, refresh = False)
         
         # Calculate the average loss and training accuracy
-        average_loss = total_loss / total_train_samples
-        train_accuracy = total_correct / train_dataset.__len__()
+        average_loss = total_loss / total_train_batches
+        train_accuracy = total_correct / total_train_samples
         # Update the progress bar
         pbar.set_postfix({'Average Loss': average_loss, 'Training Accuracy': train_accuracy})
         

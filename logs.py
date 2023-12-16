@@ -10,7 +10,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt 
 from pathlib import Path
 from tqdm import tqdm
-from sklearn.metrics import precision_score, recall_score, f1_score, confusion_matrix
+from sklearn.metrics import precision_score, recall_score, f1_score
 
 import torch
 from torch.utils.data import DataLoader
@@ -24,6 +24,7 @@ def save_training_metrics(
     model_arch, block_arch, nmp, pre_trained,
     epochs, train_loss, train_acc, val_acc
 ):  
+    print('=' * 80)
     print('Saving training metrics...')
     
     # Save the training metrics
@@ -52,7 +53,7 @@ def save_training_metrics(
         log.to_csv(f'logs/{model_arch}-{block_arch}{nmp}/train.csv', index = False)
 
     print('Training metrics saved!!!')
-    print('=' * 50)
+    print('=' * 80)
 
 def visualize_training_metrics(
     model_arch, block_arch, nmp
@@ -89,7 +90,7 @@ def visualize_training_metrics(
     plt.savefig(os.path.join(save_folder, 'accuracy.png'))
     
     print('Training metrics visualized!!!')
-    print('=' * 50)
+    print('=' * 80)
 
 def eval_on_test(
     model_arch, block_arch, epoch
@@ -113,7 +114,7 @@ def eval_on_test(
     num_frames = 30
     batch_size = 1
     num_workers = 4 # Number of threads for data loading
-    small_version = False
+    small_version = True #HERE
     phi = 0.5
     growth_rate = 12
     no_max_pool = True
@@ -201,6 +202,7 @@ def eval_on_test(
     model.eval()
     total_correct = 0
     total_test_batches = len(test_loader)
+    total_test_samples = test_dataset.__len__()
     # Create empty lists to store true and predicted labels
     true_labels = []
     predicted_labels = []
@@ -226,7 +228,7 @@ def eval_on_test(
                 pbar.update(1)
                 
         # Calculate test accuracy
-        test_accuracy = total_correct / test_dataset.__len__()
+        test_accuracy = total_correct / total_test_samples
         pbar.set_postfix({'Test Accuracy': test_accuracy})
         
         # Calculate Precision, Recall and F1-score for each class

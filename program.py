@@ -4,12 +4,13 @@ import torch
 from torchvision import transforms
 from network.R3D import R3D
 from network.R2Plus1D import R2Plus1D
+from network.T3D import T3D
 
 class GestureRecognizer:
     def __init__(
         self,
         model_path,
-        model_arch = 'r3d', block_arch = 18,
+        model_arch = 't3d', block_arch = 121,
         resize = (112, 112), num_frames = 30,
         no_max_pool = True, n_classes = 27,
         drop_frame = 0
@@ -47,6 +48,21 @@ class GestureRecognizer:
                 widen_factor = 1,
                 n_classes = self.n_classes
             ).to(device)
+        elif self.model_arch == 't3d':
+            model = T3D(
+                self.block_arch,
+                phi = 0.5,
+                growth_rate = 12,
+                temporal_expansion = 1,
+                transition_t1_size = [1, 3, 6],
+                transition_t_size = [1, 3, 4],
+                n_input_channels = 3,
+                conv1_t_size = 3,
+                conv1_t_stride = 1,
+                no_max_pool = self.no_max_pool,
+                n_classes = self.n_classes,
+                dropout = 0.0
+            )
         else:
             raise ValueError('Model architecture not supported')
         
@@ -118,7 +134,7 @@ class GestureRecognizer:
                     _, pred = output.max(1)
                     # Get the correspoding label name
                     predicted_label = labels[pred.item()]
-                       
+                
                 print(pred, predicted_label)
                 
                 # Display the result on the frame at the bottom with red color
@@ -151,8 +167,8 @@ class GestureRecognizer:
 
 def main():
     program = GestureRecognizer(
-        model_path = '../models/classify/R3D/r3d-34_0-mp_10-epochs.pth',
-        model_arch = 'r3d', block_arch = 34,
+        model_path = '../models/classify/T3D/t3d-121_0-mp_9-epochs.pth',
+        model_arch = 't3d', block_arch = 121,
         drop_frame = 0,
         n_classes = 27
     )

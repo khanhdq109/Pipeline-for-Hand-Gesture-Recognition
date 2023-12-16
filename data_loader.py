@@ -3,13 +3,17 @@ from skimage import io
 
 import torch
 import torch.nn.functional as F
-from torch.utils.data import Dataset
-# from torchvision import transforms
+from torch.utils.data import Dataset, DataLoader
+from torchvision import transforms
 
 import warnings
 warnings.filterwarnings('ignore', message = 'The default value of the antialias parameter of all the resizing transforms*')
 
 def fill_missing_frames(frames, target_temporal):
+    """
+        frames: (C x T x H x W)
+        target_temporal: target temporal length
+    """
     original_temporal = frames.shape[1]
     if original_temporal >= target_temporal:
         return frames
@@ -28,9 +32,10 @@ def collate_fn(batch):
     # Separate frames and labels
     frames, labels = zip(*batch)
     
-    # Find the maximum height, width
+    # Find the maximum height, width and temporal length
     max_height = max(video.shape[2] for video in frames)
     max_width = max(video.shape[3] for video in frames)
+    max_temporal = max(video.shape[1] for video in frames)
 
     # Pad each frame to the maximum height and width
     frames = [
@@ -41,9 +46,6 @@ def collate_fn(batch):
         )
         for video in frames
     ]
-    
-    # Find the temporal length
-    max_temporal = max(video.shape[1] for video in frames)
     
     # Fill missing frames in the temporal dimension
     frames = [fill_missing_frames(video, max_temporal) for video in frames]
@@ -140,11 +142,10 @@ class JesterV1(Dataset):
        
         return frames
 
-'''
 def main():
     # Define dataset
     data_dir = '../datasets/JESTER-V1'
-    batch_size = 6
+    batch_size = 8
     
     # Define transformations
     transform = transforms.Compose([
@@ -157,27 +158,36 @@ def main():
     ])
     
     # Create an instance of the dataset
-    dataset = JesterV1(
+    train_dataset = JesterV1(
         data_dir = data_dir,
         num_frames = 30,
         transform = transform,
         mode = 'train',
-        small = True
+        small = False
+    )
+    val_dataset = JesterV1(
+        data_dir = data_dir,
+        num_frames = 30,
+        transform = transform,
+        mode = 'val',
+        small = False
     )
     
     # Create a DataLoader
-    data_loader = DataLoader(dataset, batch_size = batch_size, shuffle = False, collate_fn = collate_fn)
+    train_loader = DataLoader(train_dataset, batch_size = batch_size, shuffle = False, collate_fn = collate_fn)
+    val_loader = DataLoader(val_dataset, batch_size = batch_size, shuffle = False, collate_fn = collate_fn)
     
     # Length of DataLoader
-    print("Number of batches:", len(data_loader))
+    print("Number of train batches:", len(train_loader))
+    print("Number of val batches:", len(val_loader))
     # Inspect a batch
-    for frames, labels in data_loader:
+    for frames, labels in train_loader:
         print("Shape of frames tensor:", frames.shape)
         print("Shape of labels tensor:", labels.shape)
         break
     # Length of Dataset
-    print("Number of samples:", dataset.__len__())
+    print("Number of train samples:", train_dataset.__len__())
+    print("Number of val samples:", val_dataset.__len__())
 
 if __name__ == '__main__':
     main()
-'''
