@@ -9,7 +9,7 @@ from torch.utils.data import DataLoader
 from torchvision import transforms
 
 from data_loader import JesterV1, collate_fn
-from network.T3D import T3D
+from network.T3D import D3D
 
 """
     Support functions
@@ -50,11 +50,11 @@ batch_size = 8
 num_workers = 8 # Number of threads for data loading
 small_version = False
 ## Model parameters
-model_arch = 't3d'
+model_arch = 'd3d'
 block_arch = 121
 phi = 0.5
 growth_rate = 12
-pre_trained = True
+pre_trained = False
 pre_trained_path = '../models/classify/T3D/t3d-121_0-mp_10-epochs.pth'
 if pre_trained:
     pre_trained_epochs = int(pre_trained_path.split('_')[-1].split('-')[0])
@@ -69,7 +69,7 @@ widen_factor = 1.0
 dropout = 0.0
 n_classes = 27
 ## Training parameters
-num_epochs = 15
+num_epochs = 10
 learning_rate = 0.001
 decay_step = 5 # Decay the learning rate after n epochs
 gamma = 0.1 # Decay the learning rate by gamma
@@ -122,7 +122,6 @@ model = R3D(
 ).to(device)
 """
 
-"""
 model = D3D(
     block_arch,
     phi = phi,
@@ -134,8 +133,8 @@ model = D3D(
     n_classes = n_classes,
     dropout = dropout
 ).to(device)
-"""
 
+"""
 model = T3D(
     block_arch,
     phi = phi,
@@ -150,6 +149,7 @@ model = T3D(
     n_classes = n_classes,
     dropout = dropout
 ).to(device)
+"""
 
 # Load pre-trained weights if pre_trained is True
 if pre_trained:

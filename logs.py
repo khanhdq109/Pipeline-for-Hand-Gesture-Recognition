@@ -17,7 +17,7 @@ from torch.utils.data import DataLoader
 from torchvision import transforms
 
 from data_loader import JesterV1
-from network.T3D import T3D
+from network.T3D import D3D
 # from network.R3D import R3D
 
 def save_training_metrics(
@@ -163,7 +163,6 @@ def eval_on_test(
     ).to(device)
     """
     
-    """
     model = D3D(
         block_arch,
         phi = phi,
@@ -175,8 +174,8 @@ def eval_on_test(
         n_classes = n_classes,
         dropout = dropout,
     ).to(device)
-    """
     
+    """
     model = T3D(
         block_arch,
         phi = phi,
@@ -191,6 +190,7 @@ def eval_on_test(
         n_classes = n_classes,
         dropout = dropout
     ).to(device)
+    """
     
     name = f'../models/classify/{model_arch.upper()}/{model_arch}-{block_arch}{nmp}_{epoch}-epochs.pth'
     model.load_state_dict(
