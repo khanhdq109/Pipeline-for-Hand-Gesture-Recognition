@@ -4,13 +4,13 @@ import torch
 from torchvision import transforms
 from network.R3D import R3D
 from network.R2Plus1D import R2Plus1D
-from network.T3D import T3D
+from network.T3D import D3D, T3D
 
 class GestureRecognizer:
     def __init__(
         self,
         model_path,
-        model_arch = 't3d', block_arch = 121,
+        model_arch = 'r3d', block_arch = 121,
         resize = (112, 112), num_frames = 30,
         no_max_pool = True, n_classes = 27,
         drop_frame = 0
@@ -63,6 +63,18 @@ class GestureRecognizer:
                 n_classes = self.n_classes,
                 dropout = 0.0
             )
+        elif self.model_arch == 'd3d':
+            model = D3D(
+                self.block_arch,
+                phi = 0.5,
+                growth_rate = 12,
+                n_input_channels = 3,
+                conv1_t_size = 3,
+                conv1_t_stride = 1,
+                no_max_pool = self.no_max_pool,
+                n_classes = self.n_classes,
+                dropout = 0.0
+            ).to(device)
         else:
             raise ValueError('Model architecture not supported')
         
@@ -167,8 +179,8 @@ class GestureRecognizer:
 
 def main():
     program = GestureRecognizer(
-        model_path = '../models/classify/T3D/t3d-121_0-mp_9-epochs.pth',
-        model_arch = 't3d', block_arch = 121,
+        model_path = '../models/classify/D3D/d3d-121_0-mp_9-epochs.pth',
+        model_arch = 'd3d', block_arch = 121,
         drop_frame = 0,
         n_classes = 27
     )

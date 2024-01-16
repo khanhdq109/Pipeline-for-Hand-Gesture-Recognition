@@ -289,7 +289,7 @@ def R3D(model_depth, **kwargs):
 
 def main():
     model = R3D(
-        18,
+        50,
         n_input_channels = 3,
         conv1_t_size = 7,
         conv1_t_stride = 1,

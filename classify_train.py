@@ -46,8 +46,8 @@ print('Selected device:', device)
 ## Data parameters
 resize = (112, 112)
 num_frames = 30
-batch_size = 8
-num_workers = 8 # Number of threads for data loading
+batch_size = 4
+num_workers = 0 # Number of threads for data loading
 small_version = False
 ## Model parameters
 model_arch = 'd3d'
@@ -69,7 +69,7 @@ widen_factor = 1.0
 dropout = 0.0
 n_classes = 27
 ## Training parameters
-num_epochs = 10
+num_epochs = 1
 learning_rate = 0.001
 decay_step = 5 # Decay the learning rate after n epochs
 gamma = 0.1 # Decay the learning rate by gamma
