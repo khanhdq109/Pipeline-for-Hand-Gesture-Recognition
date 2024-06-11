@@ -401,6 +401,7 @@ def T3D(model_depth, **kwargs):
     return model
 
 def main():
+    """
     model = D3D(
         121,
         phi = 0.5,
@@ -412,8 +413,8 @@ def main():
         n_classes = 27,
         dropout = 0.0
     )
-    
     """
+    
     model = T3D(
         121,
         phi = 0.5,
@@ -428,7 +429,6 @@ def main():
         n_classes = 27,
         dropout = 0.0
     )
-    """
     
     summary(model, (3, 30, 112, 112))
     
