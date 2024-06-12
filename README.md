@@ -1,5 +1,5 @@
 # Pipeline for Hand Gesture Recognition
-...
+Develops a real-time dynamic hand gesture recognition system using the HaGRID and JESTER datasets. It includes detection and classification components for accurate performance. Below are the project structure, setup, and execution details.
 
 ## Project structure
 * [setup.sh](./setup.sh)                    : bash file to setup environment and download dataset
