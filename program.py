@@ -179,8 +179,8 @@ class GestureRecognizer:
 
 def main():
     program = GestureRecognizer(
-        model_path = '../models/classify/D3D/d3d-121_0-mp_9-epochs.pth',
-        model_arch = 'd3d', block_arch = 121,
+        model_path = '../models/classify/T3D/t3d-121_0-mp_25-epochs.pth',
+        model_arch = 't3d', block_arch = 121,
         drop_frame = 0,
         n_classes = 27
     )
