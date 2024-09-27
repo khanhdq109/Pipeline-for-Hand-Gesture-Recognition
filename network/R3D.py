@@ -102,6 +102,57 @@ class Bottleneck(nn.Module):
         
         return out
     
+class NLBlock(nn.Module):
+    
+    def __init__(self, in_planes, subsample = False):
+        super().__init__()
+        
+        self.conv_theta = conv1x1x1(in_planes, in_planes // 2)
+        self.conv_phi = conv1x1x1(in_planes, in_planes // 2)
+        self.conv_g = conv1x1x1(in_planes, in_planes // 2)
+        self.conv_z = conv1x1x1(in_planes // 2, in_planes)
+        
+        self.bn = nn.BatchNorm3d(in_planes)
+        self.relu = nn.ReLU(inplace = True)
+        
+        self.subsample = subsample
+        self.pool = nn.MaxPool3d(kernel_size = 3, stride = 2, padding = 1)
+        
+    def forward(self, x):
+        B, C, T, H, W = x.size()
+        residual = x
+        
+        theta = self.conv_theta(x)
+        theta = self.relu(theta)
+        
+        phi = self.conv_phi(x)
+        phi = self.relu(phi)
+        
+        g = self.conv_g(x)
+        g = self.relu(g)
+        
+        if self.subsample:
+            phi = self.pool(phi)
+            g = self.pool(g)
+        
+        theta = theta.view(B, C // 2, -1)
+        theta = theta.transpose(1, 2)
+        phi = phi.view(B, C // 2, -1)
+        g = g.view(B, C // 2, -1)
+        g = g.transpose(1, 2)
+        
+        out = torch.matmul(theta, phi)
+        out = torch.matmul(out, g)
+        out = out.view(B, C // 2, T, H, W)
+        
+        out = self.conv_z(out)
+        out = self.bn(out)
+        
+        out += residual
+        out = self.relu(out)
+        
+        return out
+    
 class ResNet(nn.Module):
     
     def __init__(
@@ -114,9 +165,14 @@ class ResNet(nn.Module):
         conv1_t_stride = 1, # stride in t for the first conv layer
         no_max_pool = False, # whether to use max pool
         widen_factor = 1.0, # widen factor
+        nl_nums = 0, # number of non_local block
+        nl_subsample = False, # apply supsample for non_local block
         n_classes = 27 # number of classes
     ):
         super().__init__()
+        
+        self.nl_nums = nl_nums
+        self.nl_subsample = nl_subsample
         
         block_inplanes = [int(x * widen_factor) for x in block_inplanes]
         
@@ -139,6 +195,7 @@ class ResNet(nn.Module):
             stride = 2,
             padding = 1
         )
+        self.nl1 = NLBlock(self.in_planes, subsample = self.nl_subsample)
         
         # Layer 1
         self.layer1 = self._make_layer(
@@ -146,6 +203,7 @@ class ResNet(nn.Module):
             block_inplanes[0],
             layers[0],
         )
+        self.nl2 = NLBlock(self.in_planes, subsample = self.nl_subsample)
         # Layer 2
         self.layer2 = self._make_layer(
             block,
@@ -153,6 +211,7 @@ class ResNet(nn.Module):
             layers[1],
             stride = 2
         )
+        self.nl3 = NLBlock(self.in_planes, subsample = self.nl_subsample)
         # Layer 3
         self.layer3 = self._make_layer(
             block,
@@ -160,6 +219,7 @@ class ResNet(nn.Module):
             layers[2],
             stride = 2
         )
+        self.nl4 = NLBlock(self.in_planes, subsample = self.nl_subsample)
         # Layer 4
         self.layer4 = self._make_layer(
             block,
@@ -167,6 +227,7 @@ class ResNet(nn.Module):
             layers[3],
             stride = 2
         )
+        self.nl5 = NLBlock(self.in_planes, subsample = self.nl_subsample)
         
         self.avgpool = nn.AdaptiveAvgPool3d((1, 1, 1))
         self.fc = nn.Linear(block_inplanes[3] * block.expansion, n_classes)
@@ -225,11 +286,21 @@ class ResNet(nn.Module):
         x = self.relu(x)
         if not self.no_max_pool:
             x = self.maxpool(x)
+        if self.nl_nums >= 2:
+            x = self.nl1(x)
             
         x = self.layer1(x)
+        if self.nl_nums >= 3:
+            x = self.nl2(x)
         x = self.layer2(x)
+        if self.nl_nums >= 1:
+            x = self.nl3(x)
         x = self.layer3(x)
+        if self.nl_nums >= 4:
+            x = self.nl4(x)
         x = self.layer4(x)
+        if self.nl_nums >= 5:
+            x = self.nl5(x)
         
         x = self.avgpool(x)
         
