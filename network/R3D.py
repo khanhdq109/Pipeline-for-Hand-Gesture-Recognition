@@ -110,48 +110,39 @@ class NLBlock(nn.Module):
         self.conv_theta = conv1x1x1(in_planes, in_planes // 2)
         self.conv_phi = conv1x1x1(in_planes, in_planes // 2)
         self.conv_g = conv1x1x1(in_planes, in_planes // 2)
+
         self.conv_z = conv1x1x1(in_planes // 2, in_planes)
-        
         self.bn = nn.BatchNorm3d(in_planes)
         self.relu = nn.ReLU(inplace = True)
         
         self.subsample = subsample
-        self.pool = nn.MaxPool3d(kernel_size = 3, stride = 2, padding = 1)
+        if self.subsample:
+            self.pool = nn.MaxPool3d(kernel_size = 2, stride = 2, padding = 1)
         
     def forward(self, x):
         B, C, T, H, W = x.size()
         residual = x
         
-        theta = self.conv_theta(x)
-        theta = self.relu(theta)
-        
-        phi = self.conv_phi(x)
-        phi = self.relu(phi)
-        
-        g = self.conv_g(x)
-        g = self.relu(g)
+        theta = self.conv_theta(x).view(B, C // 2, -1) # (B, C // 2, THW)
+        phi = self.conv_phi(x).view(B, C // 2, -1) # (B, C // 2, THW)
+        g = self.conv_g(x).view(B, C // 2, -1) # (B, C // 2, THW)
         
         if self.subsample:
             phi = self.pool(phi)
             g = self.pool(g)
         
-        theta = theta.view(B, C // 2, -1)
-        theta = theta.transpose(1, 2)
-        phi = phi.view(B, C // 2, -1)
-        g = g.view(B, C // 2, -1)
-        g = g.transpose(1, 2)
+        theta = theta.permute(0, 2, 1) # (B, THW, C // 2)
+        attention = torch.matmul(theta, phi) # (B, THW, THW)
+        attention = torch.softmax(attention, dim = -1)
         
-        out = torch.matmul(theta, phi)
-        out = torch.matmul(out, g)
-        out = out.view(B, C // 2, T, H, W)
+        out = torch.matmul(attention, g.permute(0, 2, 1)) # (B, THW, C // 2)
+        out = out.permute(0, 2, 1).view(B, C // 2, T, H, W)
         
         out = self.conv_z(out)
         out = self.bn(out)
         
         out += residual
         out = self.relu(out)
-        
-        return out
     
 class ResNet(nn.Module):
     
