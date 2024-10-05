@@ -17,8 +17,8 @@ from torch.utils.data import DataLoader
 from torchvision import transforms
 
 from data_loader import JesterV1
-from network.T3D import T3D
-# from network.R3D import R3D
+# from network.T3D import T3D
+from network.R3D import R3D
 
 def save_training_metrics(
     model_arch, block_arch, nmp, pre_trained,
@@ -115,16 +115,18 @@ def eval_on_test(
     num_frames = 30
     batch_size = 1
     num_workers = 4 # Number of threads for data loading
-    small_version = False
+    small_version = True
     phi = 0.5
     growth_rate = 12
+    nl_nums = 5
+    nl_subsample = False
     no_max_pool = True
-    # widen_factor = 1.0
+    widen_factor = 1.0
     if no_max_pool:
         nmp = '_0-mp'
     else:
         nmp = '_1-mp'
-    dropout = 0.0
+    dropout = 0.2
     n_classes = 27
     
     # Define dataset
@@ -151,7 +153,6 @@ def eval_on_test(
     test_loader = DataLoader(test_dataset, batch_size = batch_size, shuffle = True, num_workers = num_workers)
     
     # Load model
-    """
     model = R3D(
         block_arch,
         n_input_channels = 3,
@@ -159,9 +160,11 @@ def eval_on_test(
         conv1_t_stride = 1,
         no_max_pool = no_max_pool,
         widen_factor = widen_factor,
+        nl_nums = nl_nums,
+        nl_subsample = nl_subsample,
+        dropout = dropout,
         n_classes = n_classes
     ).to(device)
-    """
     
     """
     model = D3D(
@@ -177,6 +180,7 @@ def eval_on_test(
     ).to(device)
     """
     
+    """
     model = T3D(
         block_arch,
         phi = phi,
@@ -191,6 +195,7 @@ def eval_on_test(
         n_classes = n_classes,
         dropout = dropout
     ).to(device)
+    """
     
     name = f'../models/classify/{model_arch.upper()}/{model_arch}-{block_arch}{nmp}_{epoch}-epochs.pth'
     model.load_state_dict(
@@ -272,19 +277,6 @@ def main():
     train_loss = loaded_metrics['train_loss']
     train_acc = loaded_metrics['train_acc']
     val_acc = loaded_metrics['val_acc']
-    
-    '''
-    # Extract model parameter
-    model_arch = 'r3d'
-    block_arch = 34
-    nmp = '_0-mp'
-    pre_trained = False
-    # Extract individual metrics lists
-    epochs = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-    train_loss = [1.6, 0.447, 0.281, 0.188, 0.127, 0.028, 0.00859, 0.00217, 0.000491, 0.0000373]
-    train_acc = [0.511, 0.855, 0.91, 0.939, 0.958, 0.992, 0.998, 1, 1, 1]
-    val_acc = [0.708, 0.772, 0.81, 0.84, 0.847, 0.866, 0.863, 0.869, 0.866, 0.878]
-    '''
     
     # Save the training metrics
     save_training_metrics(

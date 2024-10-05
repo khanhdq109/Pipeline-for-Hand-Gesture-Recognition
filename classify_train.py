@@ -9,7 +9,7 @@ from torch.utils.data import DataLoader
 from torchvision import transforms
 
 from data_loader import JesterV1, collate_fn
-from network.T3D import D3D
+from network.R3D import R3D
 
 """
     Support functions
@@ -47,15 +47,17 @@ print('Selected device:', device)
 resize = (112, 112)
 num_frames = 30
 batch_size = 4
-num_workers = 0 # Number of threads for data loading
-small_version = False
+num_workers = 4 # Number of threads for data loading
+small_version = True
 ## Model parameters
-model_arch = 'd3d'
-block_arch = 121
+model_arch = 'nl3d'
+block_arch = 50
 phi = 0.5
 growth_rate = 12
+nl_nums = 5
+nl_subsample = False
 pre_trained = False
-pre_trained_path = '../models/classify/T3D/t3d-121_0-mp_10-epochs.pth'
+pre_trained_path = ''
 if pre_trained:
     pre_trained_epochs = int(pre_trained_path.split('_')[-1].split('-')[0])
 else:
@@ -66,7 +68,7 @@ if no_max_pool:
 else:
     nmp = '_1-mp'
 widen_factor = 1.0
-dropout = 0.0
+dropout = 0.2
 n_classes = 27
 ## Training parameters
 num_epochs = 25
@@ -110,18 +112,20 @@ train_loader = DataLoader(train_dataset, batch_size = batch_size, shuffle = True
 val_loader = DataLoader(val_dataset, batch_size = batch_size, shuffle = True, num_workers = num_workers, collate_fn = collate_fn) # Validation data loader
 
 # Define model
-"""
 model = R3D(
-    18,
+    block_arch,
     n_input_channels = 3,
     conv1_t_size = 7,
     conv1_t_stride = 1,
     no_max_pool = no_max_pool,
     widen_factor = widen_factor,
+    nl_nums = nl_nums,
+    nl_subsample = nl_subsample,
+    dropout = dropout,
     n_classes = n_classes
 ).to(device)
-"""
 
+"""
 model = D3D(
     block_arch,
     phi = phi,
@@ -133,6 +137,7 @@ model = D3D(
     n_classes = n_classes,
     dropout = dropout
 ).to(device)
+"""
 
 """
 model = T3D(

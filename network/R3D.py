@@ -143,6 +143,8 @@ class NLBlock(nn.Module):
         
         out += residual
         out = self.relu(out)
+        
+        return out
     
 class ResNet(nn.Module):
     
@@ -158,6 +160,7 @@ class ResNet(nn.Module):
         widen_factor = 1.0, # widen factor
         nl_nums = 0, # number of non_local block
         nl_subsample = False, # apply supsample for non_local block
+        dropout = 0.0,
         n_classes = 27 # number of classes
     ):
         super().__init__()
@@ -221,6 +224,7 @@ class ResNet(nn.Module):
         self.nl5 = NLBlock(self.in_planes, subsample = self.nl_subsample)
         
         self.avgpool = nn.AdaptiveAvgPool3d((1, 1, 1))
+        self.dropout = nn.Dropout(p = dropout)
         self.fc = nn.Linear(block_inplanes[3] * block.expansion, n_classes)
         
         for m in self.modules():
@@ -296,6 +300,7 @@ class ResNet(nn.Module):
         x = self.avgpool(x)
         
         x = x.view(x.size(0), -1)
+        x = self.dropout(x)
         x = self.fc(x)
         
         return x
@@ -350,12 +355,15 @@ def R3D(model_depth, **kwargs):
 
 def main():
     model = R3D(
-        50,
+        10,
         n_input_channels = 3,
         conv1_t_size = 7,
         conv1_t_stride = 1,
         no_max_pool = False,
         widen_factor = 1.0,
+        nl_nums = 5,
+        nl_subsample = False,
+        dropout = 0.0,
         n_classes = 27
     )
 
