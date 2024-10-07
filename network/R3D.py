@@ -244,14 +244,16 @@ class ResNet(nn.Module):
     # Downsample input x and zero padding before adding it with out (BasicBlock and Bottleneck)    
     def _downsample_basic_block(self, x, planes, stride):
         out = F.avg_pool3d(x, kernel_size = 1, stride = stride)
+        
+        # Create zero padding and move it to the same device as 'out'
         zero_pads = torch.zeros(
             out.size(0), planes - out.size(1),
-            out.size(2), out.size(3), out.size(4)
+            out.size(2), out.size(3), out.size(4),
+            device = out.device  # Ensure zero_pads is on the same device as 'out'
         )
-        if isinstance(out.data, torch.cuda.FloatTensor):
-            zero_pads = zero_pads.cuda()
         
-        out = torch.cat([out.data, zero_pads], dim = 1)
+        # Concatenate 'out' and 'zero_pads'
+        out = torch.cat([out, zero_pads], dim = 1)
         
         return out
     
