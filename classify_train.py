@@ -54,7 +54,7 @@ model_arch = 'nl3d'
 block_arch = 50
 phi = 0.5
 growth_rate = 12
-nl_nums = 3
+nl_nums = 5
 nl_subsample = True
 pre_trained = False
 pre_trained_path = ''
@@ -171,9 +171,6 @@ scheduler = StepLR(optimizer, step_size = decay_step, gamma = gamma)
 epochs, train_loss, train_acc, val_acc = [], [], [], [] # Define lists to store the training and validation metrics
 print(f'Start training {model_arch.upper()}-{block_arch}{nmp} for {num_epochs} epochs')
 
-# Create a gradient scaler for AMP
-scaler = torch.cuda.amp.GradScaler()
-
 total_train_batches = len(train_loader) # Total number of train batches
 total_val_batches = len(val_loader) # Total number of validation batches
 total_train_samples = train_dataset.__len__() # Total number of train samples
@@ -191,19 +188,14 @@ for epoch in range(num_epochs):
             frames, labels = frames.to(device), labels.to(device)
             # Zero the parameter gradients
             optimizer.zero_grad()
-            
-            # Forward pass with autocast
-            with torch.cuda.amp.autocast():
-                # Forward pass
-                outputs = model(frames)
-                # Calculate the loss
-                loss = criterion(outputs, labels)
-            
-            # Backward pass with scaled gradients
-            scaler.scale(loss).backward()
-            scaler.step(optimizer)
-            scaler.update()
-            
+            # Forward pass
+            outputs = model(frames)
+            # Calculate the loss
+            loss = criterion(outputs, labels)
+            # Backward pass
+            loss.backward()
+            # Update the parameters
+            optimizer.step()
             # Add the loss to the total loss
             total_loss += loss.item()
             # Get the predictions
