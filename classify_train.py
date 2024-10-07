@@ -50,14 +50,14 @@ print('Selected device:', device)
 resize = (112, 112)
 num_frames = 30
 batch_size = 1
-num_workers = 2 # Number of threads for data loading
+num_workers = 4 # Number of threads for data loading
 small_version = True
 ## Model parameters
 model_arch = 'nl3d'
 block_arch = 50
 phi = 0.5
 growth_rate = 12
-nl_nums = 5
+nl_nums = 4
 nl_subsample = True
 pre_trained = False
 pre_trained_path = ''
