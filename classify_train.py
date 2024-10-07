@@ -18,8 +18,8 @@ from network.R3D import R3D
 def load_pretrained_weights(model, pre_trained_path, device):
     if pre_trained_path:
         model.load_state_dict(
-            torch.load(pre_trained_path, map_location = device),
-            strict = False
+            torch.load(pre_trained_path, map_location=device),
+            strict=False
         )
         print('Pre-trained model loaded successfully!')
 
@@ -51,7 +51,7 @@ print('Selected device:', device)
 resize = (112, 112)
 num_frames = 30
 batch_size = 2
-num_workers = 4 # Number of threads for data loading
+num_workers = 4  # Number of threads for data loading
 small_version = True
 ## Model parameters
 model_arch = 'nl3d'
@@ -77,10 +77,10 @@ n_classes = 27
 ## Training parameters
 num_epochs = 3
 learning_rate = 0.001
-decay_step = 5 # Decay the learning rate after n epochs
-gamma = 0.1 # Decay the learning rate by gamma
-validation_interval = 1 # Perform validation after every n epochs
-save_interval = 1 # Save model after every n epochs
+decay_step = 5  # Decay the learning rate after n epochs
+gamma = 0.1  # Decay the learning rate by gamma
+validation_interval = 1  # Perform validation after every n epochs
+save_interval = 1  # Save model after every n epochs
 
 # Define dataset
 data_dir = '../datasets/JESTER-V1'
@@ -90,43 +90,43 @@ transform = transforms.Compose([
     transforms.ToTensor(),
     transforms.Resize(resize),
     transforms.Normalize(
-        mean = [0.485, 0.456, 0.406],
-        std = [0.229, 0.224, 0.225]
+        mean=[0.485, 0.456, 0.406],
+        std=[0.229, 0.224, 0.225]
     )
 ])
 
 # Create an instance of the dataset
 train_dataset = JesterV1(
-    data_dir = data_dir,
-    num_frames = num_frames,
-    transform = transform,
-    mode = 'train',
-    small = small_version
-) # Train dataset
+    data_dir=data_dir,
+    num_frames=num_frames,
+    transform=transform,
+    mode='train',
+    small=small_version
+)  # Train dataset
 val_dataset = JesterV1(
-    data_dir = data_dir,
-    num_frames = num_frames,
-    transform = transform,
-    mode = 'val',
-    small = small_version
-) # Validation dataset
+    data_dir=data_dir,
+    num_frames=num_frames,
+    transform=transform,
+    mode='val',
+    small=small_version
+)  # Validation dataset
 
 # Create a DataLoader
-train_loader = DataLoader(train_dataset, batch_size = batch_size, shuffle = True, num_workers = num_workers, collate_fn = collate_fn) # Train data loader
-val_loader = DataLoader(val_dataset, batch_size = batch_size, shuffle = True, num_workers = num_workers, collate_fn = collate_fn) # Validation data loader
+train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers, collate_fn=collate_fn)  # Train data loader
+val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers, collate_fn=collate_fn)  # Validation data loader
 
 # Define model
 model = R3D(
     block_arch,
-    n_input_channels = 3,
-    conv1_t_size = 7,
-    conv1_t_stride = 1,
-    no_max_pool = no_max_pool,
-    widen_factor = widen_factor,
-    nl_nums = nl_nums,
-    nl_subsample = nl_subsample,
-    dropout = dropout,
-    n_classes = n_classes
+    n_input_channels=3,
+    conv1_t_size=7,
+    conv1_t_stride=1,
+    no_max_pool=no_max_pool,
+    widen_factor=widen_factor,
+    nl_nums=nl_nums,
+    nl_subsample=nl_subsample,
+    dropout=dropout,
+    n_classes=n_classes
 )
 
 # Wrap your model with DataParallel to use multiple GPUs
@@ -143,29 +143,29 @@ if pre_trained:
 
 # Define loss and optimizer
 criterion = nn.CrossEntropyLoss()
-optimizer = optim.Adam(model.parameters(), lr = learning_rate)
+optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
 # Create a learning rate scheduler
-scheduler = StepLR(optimizer, step_size = decay_step, gamma = gamma)
+scheduler = StepLR(optimizer, step_size=decay_step, gamma=gamma)
 
 # Initialize GradScaler for Mixed Precision Training
 scaler = GradScaler()
 
 # Start training
-epochs, train_loss, train_acc, val_acc = [], [], [], [] # Define lists to store the training and validation metrics
+epochs, train_loss, train_acc, val_acc = [], [], [], []  # Define lists to store the training and validation metrics
 print(f'Start training {model_arch.upper()}-{block_arch}{nmp} for {num_epochs} epochs')
 
-total_train_batches = len(train_loader) # Total number of train batches
-total_val_batches = len(val_loader) # Total number of validation batches
-total_train_samples = train_dataset.__len__() # Total number of train samples
-total_val_samples = val_dataset.__len__() # Total number of validation samples
+total_train_batches = len(train_loader)  # Total number of train batches
+total_val_batches = len(val_loader)  # Total number of validation batches
+total_train_samples = train_dataset.__len__()  # Total number of train samples
+total_val_samples = val_dataset.__len__()  # Total number of validation samples
 for epoch in range(num_epochs):
     # Set the model to train mode
     model.train()
-    total_loss = 0.0 # Total loss for the epoch
+    total_loss = 0.0  # Total loss for the epoch
     total_correct = 0
     
-    with tqdm(total = total_train_batches, unit = 'batch') as pbar: # Initialize the progress bar
+    with tqdm(total=total_train_batches, unit='batch') as pbar:  # Initialize the progress bar
         pbar.set_description(f'Epoch {epoch + pre_trained_epochs + 1} - Training')
         for batch_idx, (frames, labels) in enumerate(train_loader):
             # Move the frames and labels to device
@@ -174,7 +174,7 @@ for epoch in range(num_epochs):
             optimizer.zero_grad()
             
             # Forward pass with mixed precision
-            with autocast(device_type='cuda'):
+            with autocast():
                 outputs = model(frames)
                 loss = criterion(outputs, labels)
             
@@ -193,7 +193,7 @@ for epoch in range(num_epochs):
             total_correct += (predictions == labels).sum().item()
             # Update the progress bar
             pbar.update(1)
-            pbar.set_postfix({'Train Loss': loss.item()}, refresh = False)
+            pbar.set_postfix({'Train Loss': loss.item()}, refresh=False)
         
         # Calculate the average loss and training accuracy
         average_loss = total_loss / total_train_batches
@@ -215,7 +215,7 @@ for epoch in range(num_epochs):
         model.eval()
         total_correct = 0
         
-        with tqdm(total = total_val_batches, unit = 'batch') as pbar: # Initialize the progress bar
+        with tqdm(total=total_val_batches, unit='batch') as pbar:  # Initialize the progress bar
             pbar.set_description(f'Epoch {epoch + pre_trained_epochs + 1} - Validation')
             with torch.no_grad():
                 for batch_idx, (frames, labels) in enumerate(val_loader):
