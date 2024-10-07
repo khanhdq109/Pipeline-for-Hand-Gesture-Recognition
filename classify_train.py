@@ -54,10 +54,10 @@ num_workers = 4 # Number of threads for data loading
 small_version = False
 ## Model parameters
 model_arch = 'nl3d'
-block_arch = 50
+block_arch = 34
 phi = 0.5
 growth_rate = 12
-nl_nums = 3
+nl_nums = 5
 nl_subsample = True
 pre_trained = False
 pre_trained_path = ''
