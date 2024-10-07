@@ -32,10 +32,13 @@ def save_metrics(metrics_dict, json_path):
 
 # Check for GPU availability
 if torch.cuda.is_available():
-    device = torch.device('cuda')
-    print('GPU is available')
-    # Get the name of the GPU
-    print('GPU Device Name:', torch.cuda.get_device_name(0)) # Change the device index if you have multiple GPUs
+    num_gpus = torch.cuda.device_count()  # Count the number of available GPUs
+    print(f'{num_gpus} GPU(s) available')
+    
+    for i in range(num_gpus):
+        print(f'GPU {i}: {torch.cuda.get_device_name(i)}')
+    
+    device = torch.device('cuda')  # You can also specify which GPU to use with 'cuda:i'
 else:
     device = torch.device('cpu')
     print('GPU not available, using CPU instead')
