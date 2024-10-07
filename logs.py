@@ -199,7 +199,7 @@ def eval_on_test(
     
     name = f'../models/classify/{model_arch.upper()}/{model_arch}-{block_arch}{nmp}_{epoch}-epochs.pth'
     model.load_state_dict(
-        torch.load(name, map_location = device),
+        torch.load(name, map_location = device, weights_only = True),
         strict = False
     )
     print(f'Model loaded from: {name}')
