@@ -7,6 +7,7 @@ import torch.optim as optim
 from torch.optim.lr_scheduler import StepLR
 from torch.utils.data import DataLoader
 from torchvision import transforms
+from torch.cuda.amp import autocast, GradScaler 
 
 from data_loader import JesterV1, collate_fn
 from network.R3D import R3D
@@ -128,37 +129,6 @@ model = R3D(
     n_classes = n_classes
 )
 
-"""
-model = D3D(
-    block_arch,
-    phi = phi,
-    growth_rate = growth_rate,
-    n_input_channels = 3,
-    conv1_t_size = 3,
-    conv1_t_stride = 1,
-    no_max_pool = no_max_pool,
-    n_classes = n_classes,
-    dropout = dropout
-)
-"""
-
-"""
-model = T3D(
-    block_arch,
-    phi = phi,
-    growth_rate = growth_rate,
-    temporal_expansion = 1,
-    transition_t1_size = [1, 3, 6],
-    transition_t_size = [1, 3, 4],
-    n_input_channels = 3,
-    conv1_t_size = 3,
-    conv1_t_stride = 1,
-    no_max_pool = no_max_pool,
-    n_classes = n_classes,
-    dropout = dropout
-)
-"""
-
 # Wrap your model with DataParallel to use multiple GPUs
 if torch.cuda.device_count() > 1:
     print(f'Using {torch.cuda.device_count()} GPUs for training')
@@ -177,6 +147,9 @@ optimizer = optim.Adam(model.parameters(), lr = learning_rate)
 
 # Create a learning rate scheduler
 scheduler = StepLR(optimizer, step_size = decay_step, gamma = gamma)
+
+# Initialize GradScaler for Mixed Precision Training
+scaler = GradScaler()
 
 # Start training
 epochs, train_loss, train_acc, val_acc = [], [], [], [] # Define lists to store the training and validation metrics
@@ -199,14 +172,19 @@ for epoch in range(num_epochs):
             frames, labels = frames.to(device), labels.to(device)
             # Zero the parameter gradients
             optimizer.zero_grad()
-            # Forward pass
-            outputs = model(frames)
-            # Calculate the loss
-            loss = criterion(outputs, labels)
-            # Backward pass
-            loss.backward()
+            
+            # Forward pass with mixed precision
+            with autocast(device_type='cuda'):
+                outputs = model(frames)
+                loss = criterion(outputs, labels)
+            
+            # Backward pass with scaled gradients
+            scaler.scale(loss).backward()
+            
             # Update the parameters
-            optimizer.step()
+            scaler.step(optimizer)
+            scaler.update()
+
             # Add the loss to the total loss
             total_loss += loss.item()
             # Get the predictions
@@ -268,7 +246,7 @@ for epoch in range(num_epochs):
             epoch, pre_trained_epochs
         )
 
-print('Training sucessfully!!!')
+print('Training successfully completed!!!')
 
 # Save all metrics as a json file
 metrics_dict = {
