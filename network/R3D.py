@@ -123,13 +123,16 @@ class NLBlock(nn.Module):
         B, C, T, H, W = x.size()
         residual = x
         
-        theta = self.conv_theta(x).view(B, C // 2, -1) # (B, C // 2, THW)
-        phi = self.conv_phi(x).view(B, C // 2, -1) # (B, C // 2, THW)
-        g = self.conv_g(x).view(B, C // 2, -1) # (B, C // 2, THW)
+        theta = self.conv_theta(x).view(B, C // 2, -1)
+        phi = self.conv_phi(x) 
+        g = self.conv_g(x)
         
         if self.subsample:
             phi = self.pool(phi)
             g = self.pool(g)
+            
+        phi = phi.view(B, C // 2, -1)  
+        g = g.view(B, C // 2, -1)
         
         theta = theta.permute(0, 2, 1) # (B, THW, C // 2)
         attention = torch.matmul(theta, phi) # (B, THW, THW)
