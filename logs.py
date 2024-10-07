@@ -115,7 +115,7 @@ def eval_on_test(
     num_frames = 30
     batch_size = 1
     num_workers = 4 # Number of threads for data loading
-    small_version = True
+    small_version = False
     phi = 0.5
     growth_rate = 12
     nl_nums = 5
@@ -165,37 +165,6 @@ def eval_on_test(
         dropout = dropout,
         n_classes = n_classes
     ).to(device)
-    
-    """
-    model = D3D(
-        block_arch,
-        phi = phi,
-        growth_rate = growth_rate,
-        n_input_channels = 3,
-        conv1_t_size = 3,
-        conv1_t_stride = 1,
-        no_max_pool = no_max_pool,
-        n_classes = n_classes,
-        dropout = dropout,
-    ).to(device)
-    """
-    
-    """
-    model = T3D(
-        block_arch,
-        phi = phi,
-        growth_rate = growth_rate,
-        temporal_expansion = 1,
-        transition_t1_size = [1, 3, 6],
-        transition_t_size = [1, 3, 4],
-        n_input_channels = 3,
-        conv1_t_size = 3,
-        conv1_t_stride = 1,
-        no_max_pool = no_max_pool,
-        n_classes = n_classes,
-        dropout = dropout
-    ).to(device)
-    """
     
     name = f'../models/classify/{model_arch.upper()}/{model_arch}-{block_arch}{nmp}_{epoch}-epochs.pth'
     model.load_state_dict(

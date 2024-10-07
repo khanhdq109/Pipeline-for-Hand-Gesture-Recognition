@@ -49,9 +49,9 @@ print('Selected device:', device)
 ## Data parameters
 resize = (100, 100)
 num_frames = 30
-batch_size = 2
+batch_size = 1
 num_workers = 4 # Number of threads for data loading
-small_version = True
+small_version = False
 ## Model parameters
 model_arch = 'nl3d'
 block_arch = 50
@@ -74,7 +74,7 @@ widen_factor = 1.0
 dropout = 0.2
 n_classes = 27
 ## Training parameters
-num_epochs = 1
+num_epochs = 25
 learning_rate = 0.001
 decay_step = 5 # Decay the learning rate after n epochs
 gamma = 0.1 # Decay the learning rate by gamma
