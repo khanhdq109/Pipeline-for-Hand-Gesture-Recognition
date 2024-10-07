@@ -126,7 +126,7 @@ model = R3D(
     nl_subsample = nl_subsample,
     dropout = dropout,
     n_classes = n_classes
-).to(device)
+)
 
 """
 model = D3D(
@@ -139,7 +139,7 @@ model = D3D(
     no_max_pool = no_max_pool,
     n_classes = n_classes,
     dropout = dropout
-).to(device)
+)
 """
 
 """
@@ -156,8 +156,16 @@ model = T3D(
     no_max_pool = no_max_pool,
     n_classes = n_classes,
     dropout = dropout
-).to(device)
+)
 """
+
+# Wrap your model with DataParallel to use multiple GPUs
+if torch.cuda.device_count() > 1:
+    print(f'Using {torch.cuda.device_count()} GPUs for training')
+    model = nn.DataParallel(model)
+
+# Move the model to the selected device (GPU or CPU)
+model = model.to(device)
 
 # Load pre-trained weights if pre_trained is True
 if pre_trained:
