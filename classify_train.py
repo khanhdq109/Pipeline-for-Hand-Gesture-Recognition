@@ -54,7 +54,7 @@ num_workers = 4 # Number of threads for data loading
 small_version = True
 ## Model parameters
 model_arch = 'nl3d'
-block_arch = 34
+block_arch = 50
 phi = 0.5
 growth_rate = 12
 nl_nums = 5

@@ -286,21 +286,21 @@ class ResNet(nn.Module):
         x = self.relu(x)
         if not self.no_max_pool:
             x = self.maxpool(x)
-        if self.nl_nums >= 2:
+        if self.nl_nums >= 1:
             x = self.nl1(x)
             
         x = self.layer1(x)
-        if self.nl_nums >= 3:
+        if self.nl_nums >= 2:
             x = self.nl2(x)
         x = self.layer2(x)
-        if self.nl_nums >= 1:
+        if self.nl_nums >= 3:
             x = self.nl3(x)
-        x = self.layer3(x)
         if self.nl_nums >= 4:
             x = self.nl4(x)
-        x = self.layer4(x)
+        x = self.layer3(x)
         if self.nl_nums >= 5:
             x = self.nl5(x)
+        x = self.layer4(x)
         
         x = self.avgpool(x)
         
