@@ -12,7 +12,7 @@ from data_loader import JesterV1, collate_fn
 from network.R3D import R3D
 
 """
-    Support functions
+    Support functions...
 """
 def load_pretrained_weights(model, pre_trained_path, device):
     if pre_trained_path:
