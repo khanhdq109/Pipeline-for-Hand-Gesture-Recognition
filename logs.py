@@ -118,7 +118,7 @@ def eval_on_test(
     small_version = True
     phi = 0.5
     growth_rate = 12
-    nl_nums = 5
+    nl_nums = 1
     nl_subsample = True
     no_max_pool = True
     widen_factor = 1.0
