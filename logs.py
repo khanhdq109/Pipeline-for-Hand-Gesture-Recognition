@@ -119,7 +119,7 @@ def eval_on_test(
     phi = 0.5
     growth_rate = 12
     nl_nums = 5
-    nl_subsample = False
+    nl_subsample = True
     no_max_pool = True
     widen_factor = 1.0
     if no_max_pool:

@@ -55,7 +55,7 @@ block_arch = 50
 phi = 0.5
 growth_rate = 12
 nl_nums = 5
-nl_subsample = False
+nl_subsample = True
 pre_trained = False
 pre_trained_path = ''
 if pre_trained:
