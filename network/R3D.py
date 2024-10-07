@@ -6,7 +6,7 @@ from functools import partial
 from torchsummary import summary
 
 def get_inplanes():
-    return [64, 128, 256, 512]
+    return [32, 64, 128, 256]
 
 def conv3x3x3(in_planes, out_planes, stride = 1):
     return nn.Conv3d(
