@@ -107,8 +107,10 @@ class NLBlock(nn.Module):
     def __init__(self, in_planes, inter_planes = None, subsample = False):
         super().__init__()
         
+        self.n = 2
+        
         if inter_planes is None:
-            inter_planes = max(in_planes // 2) # HERE
+            inter_planes = max(1, in_planes // self.n)
             
         # theta, phi, g
         self.theta = conv1x1x1(in_planes, inter_planes)
@@ -145,7 +147,7 @@ class NLBlock(nn.Module):
         
         # Apply attention to g_x
         y = torch.matmul(theta_phi, g_x.permute(0, 2, 1)) # (B, THW, C // 2)
-        y = y.permute(0, 2, 1).view(B, C // 2, T, H, W) # AND HERE
+        y = y.permute(0, 2, 1).view(B, C // self.n, T, H, W)
         
         # Apply final projection
         z = self.z(y)
