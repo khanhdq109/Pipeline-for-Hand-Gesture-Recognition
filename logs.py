@@ -111,14 +111,14 @@ def eval_on_test(
     print('Selected device:', device)
     
     # Set parameters
-    resize = (100, 100)
+    resize = (112, 112)
     num_frames = 30
     batch_size = 1
     num_workers = 4 # Number of threads for data loading
-    small_version = False
+    small_version = True
     phi = 0.5
     growth_rate = 12
-    nl_nums = 5
+    nl_nums = 3
     nl_subsample = True
     no_max_pool = True
     widen_factor = 1.0
@@ -126,7 +126,6 @@ def eval_on_test(
         nmp = '_0-mp'
     else:
         nmp = '_1-mp'
-    dropout = 0.2
     n_classes = 27
     
     # Define dataset
@@ -162,7 +161,6 @@ def eval_on_test(
         widen_factor = widen_factor,
         nl_nums = nl_nums,
         nl_subsample = nl_subsample,
-        dropout = dropout,
         n_classes = n_classes
     ).to(device)
     

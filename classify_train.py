@@ -47,17 +47,17 @@ print('Selected device:', device)
 
 # Set training parameters
 ## Data parameters
-resize = (100, 100)
+resize = (112, 112)
 num_frames = 30
 batch_size = 1
 num_workers = 4 # Number of threads for data loading
-small_version = False
+small_version = True
 ## Model parameters
 model_arch = 'nl3d'
 block_arch = 34
 phi = 0.5
 growth_rate = 12
-nl_nums = 5
+nl_nums = 3
 nl_subsample = True
 pre_trained = False
 pre_trained_path = ''
@@ -71,10 +71,9 @@ if no_max_pool:
 else:
     nmp = '_1-mp'
 widen_factor = 1.0
-dropout = 0.2
 n_classes = 27
 ## Training parameters
-num_epochs = 10
+num_epochs = 1
 learning_rate = 0.001
 decay_step = 5 # Decay the learning rate after n epochs
 gamma = 0.1 # Decay the learning rate by gamma
@@ -124,7 +123,6 @@ model = R3D(
     widen_factor = widen_factor,
     nl_nums = nl_nums,
     nl_subsample = nl_subsample,
-    dropout = dropout,
     n_classes = n_classes
 ).to(device)
 
