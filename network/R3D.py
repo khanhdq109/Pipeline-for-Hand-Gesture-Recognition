@@ -134,12 +134,19 @@ class NLBlock(nn.Module):
         phi_x = self.phi(x)
         g_x = self.g(x)
         
+        print(phi_x.shape)
+        print(g_x.shape)
+        
         if self.subsample:
-            phi_x = self.pool(phi_x).view(B, -1, T * H * W // 8)
-            g_x = self.pool(g_x).view(B, -1, T * H * W // 8)
-        else:
-            phi_x = phi_x.view(B, -1, T * H * W)
-            g_x = g_x.view(B, -1, T * H * W)
+            phi_x = self.pool(phi_x)
+            g_x = self.pool(g_x)
+        
+        print(phi_x.shape)
+        print(g_x.shape)
+        
+        _, _, T_p, H_p, W_p = phi_x.size()
+        phi_x = phi_x.view(B, -1, T_p * H_p * W_p)
+        g_x = g_x.view(B, -1, T_p * H_p * W_p)
             
         # Compute attention map
         theta_phi = torch.matmul(theta_x.permute(0, 2, 1), phi_x) # (B, THW, THW)
@@ -374,7 +381,7 @@ def main():
     
     model = R3D(
         50,
-        n_input_channels = 3,
+        n_input_channels = 3,s
         conv1_t_size = 7,
         conv1_t_stride = 1,
         no_max_pool = True,
