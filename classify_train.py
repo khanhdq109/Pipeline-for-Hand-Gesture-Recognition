@@ -126,15 +126,7 @@ model = R3D(
     nl_subsample = nl_subsample,
     dropout = dropout,
     n_classes = n_classes
-)
-
-# Wrap your model with DataParallel to use multiple GPUs
-if torch.cuda.device_count() > 1:
-    print(f'Using {torch.cuda.device_count()} GPUs for training')
-    model = nn.DataParallel(model)
-
-# Move the model to the selected device (GPU or CPU)
-model = model.to(device)
+).to(device)
 
 # Load pre-trained weights if pre_trained is True
 if pre_trained:
@@ -187,8 +179,8 @@ for epoch in range(num_epochs):
             pbar.set_postfix({'Train Loss': loss.item()}, refresh = False)
         
         # Calculate the average loss and training accuracy
-        average_loss = total_loss / total_train_batches
-        train_accuracy = total_correct / total_train_samples
+        average_loss = total_loss / total_train_samples
+        train_accuracy = total_correct / train_dataset.__len__()
         # Update the progress bar
         pbar.set_postfix({'Average Loss': average_loss, 'Training Accuracy': train_accuracy})
         
