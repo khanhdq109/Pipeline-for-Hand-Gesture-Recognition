@@ -107,8 +107,10 @@ class NLBlock(nn.Module):
     def __init__(self, in_planes, inter_planes = None, subsample = False):
         super().__init__()
         
+        self.n = 2
+        
         if inter_planes is None:
-            inter_planes = in_planes // 2
+            inter_planes = max(in_planes // self.n)
             
         # theta, phi, g
         self.theta = conv1x1x1(in_planes, inter_planes)
@@ -127,13 +129,11 @@ class NLBlock(nn.Module):
     def forward(self, x):
         B, C, T, H, W = x.size()
         
-        # Parameterization
-        theta_x = self.theta(x)
+        # Parameterization, subsample, reshape
+        theta_x = self.theta(x).view(B, -1, T * H * W)
         phi_x = self.phi(x)
         g_x = self.g(x)
         
-        # Subsample and reshape
-        theta_x = theta_x.view(B, -1, T * H * W)
         if self.subsample:
             phi_x = self.pool(phi_x).view(B, -1, T * H * W // 8)
             g_x = self.pool(g_x).view(B, -1, T * H * W // 8)
@@ -147,7 +147,7 @@ class NLBlock(nn.Module):
         
         # Apply attention to g_x
         y = torch.matmul(theta_phi, g_x.permute(0, 2, 1)) # (B, THW, C // 2)
-        y = y.permute(0, 2, 1).view(B, C // 2, T, H, W)
+        y = y.permute(0, 2, 1).view(B, C // self.n, T, H, W)
         
         # Apply final projection
         z = self.z(y)
@@ -205,8 +205,7 @@ class ResNet(nn.Module):
             block_inplanes[0],
             layers[0],
         )
-        if self.nl_nums >= 1:
-            self.nl1 = NLBlock(self.in_planes, subsample = self.nl_subsample)
+        self.nl1 = NLBlock(self.in_planes, subsample = self.nl_subsample) if nl_nums >= 1 else None
         # Layer 2
         self.layer2 = self._make_layer(
             block,
@@ -214,8 +213,7 @@ class ResNet(nn.Module):
             layers[1],
             stride = 2
         )
-        if self.nl_nums >= 2:
-            self.nl2 = NLBlock(self.in_planes, subsample = self.nl_subsample)
+        self.nl2 = NLBlock(self.in_planes, subsample = self.nl_subsample) if nl_nums >= 2 else None
         # Layer 3
         self.layer3 = self._make_layer(
             block,
@@ -223,8 +221,7 @@ class ResNet(nn.Module):
             layers[2],
             stride = 2
         )
-        if self.nl_nums >= 3:
-            self.nl3 = NLBlock(self.in_planes, subsample = self.nl_subsample)
+        self.nl3 = NLBlock(self.in_planes, subsample = self.nl_subsample) if nl_nums >= 3 else None
         # Layer 4
         self.layer4 = self._make_layer(
             block,
@@ -232,12 +229,14 @@ class ResNet(nn.Module):
             layers[3],
             stride = 2
         )
-        if self.nl_nums >= 4:
-            self.nl4 = NLBlock(self.in_planes, subsample = self.nl_subsample)
+        self.nl4 = NLBlock(self.in_planes, subsample = self.nl_subsample) if nl_nums >= 4 else None
         
         self.avgpool = nn.AdaptiveAvgPool3d((1, 1, 1))
         self.fc = nn.Linear(block_inplanes[3] * block.expansion, n_classes)
         
+        self._initialize_weights()
+        
+    def _initialize_weights(self):
         for m in self.modules():
             if isinstance(m, nn.Conv3d):
                 nn.init.kaiming_normal_(
@@ -299,23 +298,22 @@ class ResNet(nn.Module):
         
         # Layer 1
         x = self.layer1(x)
-        if self.nl_nums >= 1:
+        if self.nl1:
             x = self.nl1(x)
         # Layer 2
         x = self.layer2(x)
-        if self.nl_nums >= 2:
+        if self.nl2:
             x = self.nl2(x)
         # Layer 3
         x = self.layer3(x)
-        if self.nl_nums >= 3:
+        if self.nl3:
             x = self.nl3(x)
         # Layer 4
         x = self.layer4(x)
-        if self.nl_nums >= 4:
+        if self.nl4:
             x = self.nl4(x)
         
         x = self.avgpool(x)
-        
         x = x.view(x.size(0), -1)
         x = self.fc(x)
         
