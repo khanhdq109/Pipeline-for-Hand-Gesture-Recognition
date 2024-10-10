@@ -369,6 +369,8 @@ def R3D(model_depth, **kwargs):
 
 
 def main():
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    
     model = R3D(
         50,
         n_input_channels = 3,
@@ -379,9 +381,9 @@ def main():
         nl_nums = 1,
         nl_subsample = True,
         n_classes = 27
-    )
+    ).to(device)
 
-    summary(model, (3, 30, 112, 112))
+    summary(model, (3, 30, 112, 112), device = str(device))
     
 if __name__ == '__main__':
     main()
