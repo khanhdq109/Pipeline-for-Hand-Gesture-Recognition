@@ -115,7 +115,7 @@ def eval_on_test(
     num_frames = 30
     batch_size = 1
     num_workers = 4 # Number of threads for data loading
-    small_version = True
+    small_version = False
     phi = 0.5
     growth_rate = 12
     nl_nums = 3

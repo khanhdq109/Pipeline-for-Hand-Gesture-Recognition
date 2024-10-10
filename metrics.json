@@ -1,1 +1,0 @@
-{"model_arch": "nl3d", "block_arch": 34, "nmp": "_0-mp", "pre_trained": false, "epochs": [1], "train_loss": [3.984905307302998], "train_acc": [0.036286919831223625], "val_acc": [0.04081632653061224]}
