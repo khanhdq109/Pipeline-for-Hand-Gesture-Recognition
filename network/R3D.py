@@ -390,7 +390,7 @@ def main():
         n_classes = 27
     ).to(device)
 
-    summary(model, (3, 30, 112, 112), device = str(device))
+    # summary(model, (3, 30, 112, 112), device = str(device))
     
 if __name__ == '__main__':
     main()
