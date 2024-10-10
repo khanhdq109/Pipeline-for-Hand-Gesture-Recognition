@@ -380,7 +380,7 @@ def main():
     
     model = R3D(
         50,
-        n_input_channels = 3,s
+        n_input_channels = 3,
         conv1_t_size = 7,
         conv1_t_stride = 1,
         no_max_pool = True,
