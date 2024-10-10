@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from functools import partial
-from torchsummary import summary
+# from torchsummary import summary
 
 def get_inplanes():
     return [64, 128, 256, 512]
@@ -134,15 +134,9 @@ class NLBlock(nn.Module):
         phi_x = self.phi(x)
         g_x = self.g(x)
         
-        print(phi_x.shape)
-        print(g_x.shape)
-        
         if self.subsample:
             phi_x = self.pool(phi_x)
             g_x = self.pool(g_x)
-        
-        print(phi_x.shape)
-        print(g_x.shape)
         
         _, _, T_p, H_p, W_p = phi_x.size()
         phi_x = phi_x.view(B, -1, T_p * H_p * W_p)
@@ -376,6 +370,7 @@ def R3D(model_depth, **kwargs):
 
 
 def main():
+    """
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     
     model = R3D(
@@ -390,7 +385,8 @@ def main():
         n_classes = 27
     ).to(device)
 
-    # summary(model, (3, 30, 112, 112), device = str(device))
+    summary(model, (3, 30, 112, 112), device = str(device))
+    """
     
 if __name__ == '__main__':
     main()
