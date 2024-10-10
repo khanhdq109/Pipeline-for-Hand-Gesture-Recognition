@@ -134,7 +134,7 @@ class NLBlock(nn.Module):
         phi_x = self.phi(x)
         g_x = self.g(x)
         
-        if self.subsample:
+        if self.subsample and T > 1 and H > 1 and W > 1:
             phi_x = self.pool(phi_x)
             g_x = self.pool(g_x)
         
