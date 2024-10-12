@@ -118,7 +118,7 @@ def eval_on_test(
     small_version = False
     phi = 0.5
     growth_rate = 12
-    nl_nums = 3
+    nl_nums = 0
     nl_subsample = True
     no_max_pool = True
     widen_factor = 1.0
@@ -159,8 +159,6 @@ def eval_on_test(
         conv1_t_stride = 1,
         no_max_pool = no_max_pool,
         widen_factor = widen_factor,
-        nl_nums = nl_nums,
-        nl_subsample = nl_subsample,
         n_classes = n_classes
     ).to(device)
     

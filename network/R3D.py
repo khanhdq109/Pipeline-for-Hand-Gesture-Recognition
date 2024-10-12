@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from functools import partial
-# from torchsummary import summary
+from torchsummary import summary
 
 def get_inplanes():
     return [64, 128, 256, 512]
@@ -179,7 +179,6 @@ class ResNet(nn.Module):
         block_inplanes = [int(x * widen_factor) for x in block_inplanes]
         
         self.in_planes = block_inplanes[0]
-        self.nl_nums = nl_nums
         self.nl_subsample = nl_subsample
         self.no_max_pool = no_max_pool
         
@@ -235,9 +234,6 @@ class ResNet(nn.Module):
         self.avgpool = nn.AdaptiveAvgPool3d((1, 1, 1))
         self.fc = nn.Linear(block_inplanes[3] * block.expansion, n_classes)
         
-        self._initialize_weights()
-        
-    def _initialize_weights(self):
         for m in self.modules():
             if isinstance(m, nn.Conv3d):
                 nn.init.kaiming_normal_(
@@ -252,14 +248,11 @@ class ResNet(nn.Module):
     # Downsample input x and zero padding before adding it with out (BasicBlock and Bottleneck)    
     def _downsample_basic_block(self, x, planes, stride):
         out = F.avg_pool3d(x, kernel_size = 1, stride = stride)
-        
-        # Create zero padding and move it to the same device as 'out'
         zero_pads = torch.zeros(
             out.size(0), planes - out.size(1),
             out.size(2), out.size(3), out.size(4),
-            device = out.device  # Ensure zero_pads is on the same device as 'out'
+            device = out.device
         )
-        
         if isinstance(out.data, torch.cuda.FloatTensor):
             zero_pads = zero_pads.cuda()
         
@@ -288,6 +281,7 @@ class ResNet(nn.Module):
         self.in_planes = planes * block.expansion
         for i in range(1, num_blocks):
             layers.append(block(self.in_planes, planes))
+            
         return nn.Sequential(*layers)
     
     def forward(self, x):
@@ -368,25 +362,20 @@ def R3D(model_depth, **kwargs):
     
     return model
 
-
 def main():
-    """
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     
     model = R3D(
-        50,
+        34,
         n_input_channels = 3,
         conv1_t_size = 7,
         conv1_t_stride = 1,
         no_max_pool = True,
         widen_factor = 1.0,
-        nl_nums = 1,
-        nl_subsample = True,
         n_classes = 27
     ).to(device)
 
     summary(model, (3, 30, 112, 112), device = str(device))
-    """
     
 if __name__ == '__main__':
     main()

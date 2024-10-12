@@ -32,13 +32,10 @@ def save_metrics(metrics_dict, json_path):
 
 # Check for GPU availability
 if torch.cuda.is_available():
-    num_gpus = torch.cuda.device_count()  # Count the number of available GPUs
-    print(f'{num_gpus} GPU(s) available')
-    
-    for i in range(num_gpus):
-        print(f'GPU {i}: {torch.cuda.get_device_name(i)}')
-    
-    device = torch.device('cuda')  # You can also specify which GPU to use with 'cuda:i'
+    device = torch.device('cuda')
+    print('GPU is available')
+    # Get the name of the GPU
+    print('GPU Device Name:', torch.cuda.get_device_name(0))
 else:
     device = torch.device('cpu')
     print('GPU not available, using CPU instead')
@@ -49,15 +46,15 @@ print('Selected device:', device)
 ## Data parameters
 resize = (112, 112)
 num_frames = 30
-batch_size = 1
+batch_size = 4
 num_workers = 4 # Number of threads for data loading
 small_version = False
 ## Model parameters
-model_arch = 'nl3d'
+model_arch = 'r3d'
 block_arch = 34
 phi = 0.5
 growth_rate = 12
-nl_nums = 3
+nl_nums = 0
 nl_subsample = True
 pre_trained = False
 pre_trained_path = ''
@@ -71,6 +68,7 @@ if no_max_pool:
 else:
     nmp = '_1-mp'
 widen_factor = 1.0
+dropout = 0.0
 n_classes = 27
 ## Training parameters
 num_epochs = 10
@@ -121,8 +119,6 @@ model = R3D(
     conv1_t_stride = 1,
     no_max_pool = no_max_pool,
     widen_factor = widen_factor,
-    nl_nums = nl_nums,
-    nl_subsample = nl_subsample,
     n_classes = n_classes
 ).to(device)
 
@@ -177,8 +173,8 @@ for epoch in range(num_epochs):
             pbar.set_postfix({'Train Loss': loss.item()}, refresh = False)
         
         # Calculate the average loss and training accuracy
-        average_loss = total_loss / total_train_samples
-        train_accuracy = total_correct / train_dataset.__len__()
+        average_loss = total_loss / total_train_batches
+        train_accuracy = total_correct / total_train_samples
         # Update the progress bar
         pbar.set_postfix({'Average Loss': average_loss, 'Training Accuracy': train_accuracy})
         
