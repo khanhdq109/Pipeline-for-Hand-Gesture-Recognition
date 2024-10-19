@@ -1,1 +1,0 @@
-{"model_arch": "r3d", "block_arch": 34, "nmp": "_0-mp", "nl_nums": 1, "pre_trained": false, "epochs": [1], "train_loss": [3.7512682265873196], "train_acc": [0.04556962025316456], "val_acc": [0.09523809523809523]}
