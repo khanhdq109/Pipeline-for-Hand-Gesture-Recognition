@@ -104,59 +104,68 @@ class Bottleneck(nn.Module):
     
 class NLBlock(nn.Module):
     
-    def __init__(self, in_planes, inter_planes = None, subsample = False):
-        super().__init__()
+    def __init__(self, in_channels, subsample = True):
+        super(NLBlock, self).__init__()
         
         self.n = 2
         
-        if inter_planes is None:
-            inter_planes = max(1, in_planes // self.n)
-            
-        # theta, phi, g
-        self.theta = conv1x1x1(in_planes, inter_planes)
-        self.phi = conv1x1x1(in_planes, inter_planes)
-        self.g = conv1x1x1(in_planes, inter_planes)
+        self.in_channels = in_channels
+        self.inter_channels = in_channels // self.n
         
-        # z
-        self.z = conv1x1x1(inter_planes, in_planes)
-        self.bn = nn.BatchNorm3d(in_planes)
+        # Theta, Phi, G transforms
+        self.theta = nn.Conv3d(in_channels, self.inter_channels, kernel_size = 1)
+        self.phi = nn.Conv3d(in_channels, self.inter_channels, kernel_size = 1)
+        self.g = nn.Conv3d(in_channels, self.inter_channels, kernel_size = 1)
         
-        # Supsampling (optional)
+        self.bn1 = nn.BatchNorm3d(self.inter_channels)
+        
+        # W transform to match input channel dimensions
+        self.W = nn.Conv3d(self.inter_channels, in_channels, kernel_size = 1)
+        self.bn2 = nn.BatchNorm3d(in_channels)
+        
+        nn.init.constant_(self.W.weight, 0)
+        nn.init.constant_(self.W.bias, 0)
+        
+        self.relu = nn.ReLU(inplace = True)
+        self.softmax = nn.Softmax(dim = -1)
+        
         self.subsample = subsample
         if self.subsample:
-            self.pool = nn.MaxPool3d(kernel_size = (2, 2, 2), stride = (2, 2, 2))
-            
+            self.pool = nn.MaxPool3d(kernel_size = 2)
+        
     def forward(self, x):
-        B, C, T, H, W = x.size()
+        batch_size = x.size(0)
         
-        # Parameterization, subsample, reshape
-        theta_x = self.theta(x).view(B, -1, T * H * W)
-        phi_x = self.phi(x)
-        g_x = self.g(x)
+        # Theta, Phi and G projections
+        theta_x = self.relu(self.bn1(self.theta(x)))
+        theta_x = theta_x.view(batch_size, self.inter_channels, -1)
         
-        if self.subsample and T > 1 and H > 1 and W > 1:
+        phi_x = self.relu(self.bn1(self.phi(x)))
+        if self.subsample:
             phi_x = self.pool(phi_x)
+        phi_x = phi_x.view(batch_size, self.inter_channels, -1)
+        
+        g_x = self.relu(self.bn1(self.g(x)))
+        if self.subsample:
             g_x = self.pool(g_x)
+        g_x = g_x.view(batch_size, self.inter_channels, -1)
         
-        _, _, T_p, H_p, W_p = phi_x.size()
-        phi_x = phi_x.view(B, -1, T_p * H_p * W_p)
-        g_x = g_x.view(B, -1, T_p * H_p * W_p)
-            
         # Compute attention map
-        theta_phi = torch.matmul(theta_x.permute(0, 2, 1), phi_x) # (B, THW, THW)
-        theta_phi = torch.softmax(theta_phi, dim = -1)
+        theta_x = theta_x.permute(0, 2, 1) # (B, THW, C)
+        f = torch.matmul(theta_x, phi_x) # (B, THW, C) x (B, C, THW)
+        f_div_C = self.softmax(f) # (B, THW, THW)
         
-        # Apply attention to g_x
-        y = torch.matmul(theta_phi, g_x.permute(0, 2, 1)) # (B, THW, C // 2)
-        y = y.permute(0, 2, 1).view(B, C // self.n, T, H, W)
+        # Apply attention to G
+        y = torch.matmul(f_div_C, g_x.permute(0, 2, 1)) # (B, THW, THW) x (B, THW, C) --> (B, THW, C)
+        y = y.permute(0, 2, 1).contiguous().view(batch_size, self.inter_channels, *x.size()[2:]) 
         
-        # Apply final projection
-        z = self.z(y)
-        z = self.bn(z)
+        # Apply the final W transform
+        W_y = self.W(y)
+        W_y = self.bn2(W_y)
+        z = W_y + x # Residual connection
+        z = self.relu(z)
         
-        out = x + z
-        
-        return out
+        return z
     
 class ResNet(nn.Module):
     
@@ -170,8 +179,7 @@ class ResNet(nn.Module):
         conv1_t_stride = 1, # stride in t for the first conv layer
         no_max_pool = False, # whether to use max pool
         widen_factor = 1.0, # widen factor
-        nl_nums = 0, # number of non_local block
-        nl_subsample = False, # apply supsample for non_local block
+        nl_nums = 0, # number of non-local block
         n_classes = 27 # number of classes
     ):
         super().__init__()
@@ -179,8 +187,8 @@ class ResNet(nn.Module):
         block_inplanes = [int(x * widen_factor) for x in block_inplanes]
         
         self.in_planes = block_inplanes[0]
-        self.nl_subsample = nl_subsample
         self.no_max_pool = no_max_pool
+        self.nl_nums = nl_nums
         
         # First convolution
         self.conv1 = nn.Conv3d(
@@ -205,7 +213,7 @@ class ResNet(nn.Module):
             block_inplanes[0],
             layers[0],
         )
-        self.nl1 = NLBlock(self.in_planes, subsample = self.nl_subsample) if nl_nums >= 1 else None
+        if self.nl_nums >= 1: self.nl1 = NLBlock(block_inplanes[0])
         # Layer 2
         self.layer2 = self._make_layer(
             block,
@@ -213,7 +221,7 @@ class ResNet(nn.Module):
             layers[1],
             stride = 2
         )
-        self.nl2 = NLBlock(self.in_planes, subsample = self.nl_subsample) if nl_nums >= 2 else None
+        if self.nl_nums >= 2: self.nl2 = NLBlock(block_inplanes[1])
         # Layer 3
         self.layer3 = self._make_layer(
             block,
@@ -221,7 +229,7 @@ class ResNet(nn.Module):
             layers[2],
             stride = 2
         )
-        self.nl3 = NLBlock(self.in_planes, subsample = self.nl_subsample) if nl_nums >= 3 else None
+        if self.nl_nums >= 3: self.nl3 = NLBlock(block_inplanes[2])
         # Layer 4
         self.layer4 = self._make_layer(
             block,
@@ -229,7 +237,7 @@ class ResNet(nn.Module):
             layers[3],
             stride = 2
         )
-        self.nl4 = NLBlock(self.in_planes, subsample = self.nl_subsample) if nl_nums >= 4 else None
+        if self.nl_nums >= 4: self.nl4 = NLBlock(block_inplanes[3])
         
         self.avgpool = nn.AdaptiveAvgPool3d((1, 1, 1))
         self.fc = nn.Linear(block_inplanes[3] * block.expansion, n_classes)
@@ -293,19 +301,19 @@ class ResNet(nn.Module):
         
         # Layer 1
         x = self.layer1(x)
-        if self.nl1:
+        if self.nl_nums >= 1:
             x = self.nl1(x)
         # Layer 2
         x = self.layer2(x)
-        if self.nl2:
+        if self.nl_nums >= 2:
             x = self.nl2(x)
         # Layer 3
         x = self.layer3(x)
-        if self.nl3:
+        if self.nl_nums >= 3:
             x = self.nl3(x)
         # Layer 4
         x = self.layer4(x)
-        if self.nl4:
+        if self.nl_nums >= 4:
             x = self.nl4(x)
         
         x = self.avgpool(x)
@@ -372,6 +380,7 @@ def main():
         conv1_t_stride = 1,
         no_max_pool = True,
         widen_factor = 1.0,
+        nl_nums = 1,
         n_classes = 27
     ).to(device)
 
