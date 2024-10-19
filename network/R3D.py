@@ -179,7 +179,8 @@ class ResNet(nn.Module):
         conv1_t_stride = 1, # stride in t for the first conv layer
         no_max_pool = False, # whether to use max pool
         widen_factor = 1.0, # widen factor
-        nl_nums = 0, # number of non-local block
+        nl_nums = 0, # number of non-local block,
+        nl_subsample = True, # apply subsample to non-local blocks
         n_classes = 27 # number of classes
     ):
         super().__init__()
@@ -213,7 +214,7 @@ class ResNet(nn.Module):
             block_inplanes[0],
             layers[0],
         )
-        if self.nl_nums >= 1: self.nl1 = NLBlock(block_inplanes[0])
+        if self.nl_nums >= 1: self.nl1 = NLBlock(block_inplanes[0], nl_subsample)
         # Layer 2
         self.layer2 = self._make_layer(
             block,
@@ -221,7 +222,7 @@ class ResNet(nn.Module):
             layers[1],
             stride = 2
         )
-        if self.nl_nums >= 2: self.nl2 = NLBlock(block_inplanes[1])
+        if self.nl_nums >= 2: self.nl2 = NLBlock(block_inplanes[1], nl_subsample)
         # Layer 3
         self.layer3 = self._make_layer(
             block,
@@ -229,7 +230,7 @@ class ResNet(nn.Module):
             layers[2],
             stride = 2
         )
-        if self.nl_nums >= 3: self.nl3 = NLBlock(block_inplanes[2])
+        if self.nl_nums >= 3: self.nl3 = NLBlock(block_inplanes[2], nl_subsample)
         # Layer 4
         self.layer4 = self._make_layer(
             block,
@@ -237,7 +238,7 @@ class ResNet(nn.Module):
             layers[3],
             stride = 2
         )
-        if self.nl_nums >= 4: self.nl4 = NLBlock(block_inplanes[3])
+        if self.nl_nums >= 4: self.nl4 = NLBlock(block_inplanes[3], nl_subsample)
         
         self.avgpool = nn.AdaptiveAvgPool3d((1, 1, 1))
         self.fc = nn.Linear(block_inplanes[3] * block.expansion, n_classes)
@@ -381,6 +382,7 @@ def main():
         no_max_pool = True,
         widen_factor = 1.0,
         nl_nums = 1,
+        
         n_classes = 27
     ).to(device)
 

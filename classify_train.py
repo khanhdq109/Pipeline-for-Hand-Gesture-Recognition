@@ -22,8 +22,11 @@ def load_pretrained_weights(model, pre_trained_path, device):
         )
         print('Pre-trained model loaded successfully!')
 
-def save_model(model, model_arch, block_arch, nmp, epoch, pre_trained_epochs):
-    name = f'../models/classify/{model_arch.upper()}/{model_arch}-{block_arch}{nmp}_{epoch + pre_trained_epochs + 1}-epochs.pth'
+def save_model(model, model_arch, block_arch, nmp, epoch, pre_trained_epochs, nl_nums = 0):
+    if nl_nums == 0:
+        name = f'../models/classify/{model_arch.upper()}/{model_arch}-{block_arch}{nmp}_{epoch + pre_trained_epochs + 1}-epochs.pth'
+    else:
+        name = f'../models/classify/{model_arch.upper()}/{model_arch}-{block_arch}{nmp}_{nl_nums}-nl_{epoch + pre_trained_epochs + 1}-epochs.pth'
     torch.save(model.state_dict(), name)
     
 def save_metrics(metrics_dict, json_path):
@@ -48,14 +51,13 @@ resize = (112, 112)
 num_frames = 30
 batch_size = 4
 num_workers = 4 # Number of threads for data loading
-small_version = False
+small_version = True
 ## Model parameters
 model_arch = 'r3d'
 block_arch = 34
 phi = 0.5
 growth_rate = 12
-nl_nums = 0
-nl_subsample = True
+nl_nums = 1
 pre_trained = False
 pre_trained_path = ''
 if pre_trained:
@@ -71,7 +73,7 @@ widen_factor = 1.0
 dropout = 0.0
 n_classes = 27
 ## Training parameters
-num_epochs = 10
+num_epochs = 2
 learning_rate = 0.001
 decay_step = 5 # Decay the learning rate after n epochs
 gamma = 0.1 # Decay the learning rate by gamma
@@ -119,6 +121,7 @@ model = R3D(
     conv1_t_stride = 1,
     no_max_pool = no_max_pool,
     widen_factor = widen_factor,
+    nl_nums = nl_nums,
     n_classes = n_classes
 ).to(device)
 
@@ -220,7 +223,8 @@ for epoch in range(num_epochs):
         save_model(
             model,
             model_arch, block_arch, nmp,
-            epoch, pre_trained_epochs
+            epoch, pre_trained_epochs,
+            nl_nums
         )
 
 print('Training sucessfully!!!')
@@ -231,6 +235,7 @@ metrics_dict = {
     'model_arch': model_arch,
     'block_arch': block_arch,
     'nmp': nmp,
+    'nl_nums': nl_nums,
     'pre_trained': pre_trained,
     # Metrics
     'epochs': epochs,
