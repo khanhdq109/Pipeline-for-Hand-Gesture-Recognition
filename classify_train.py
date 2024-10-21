@@ -49,15 +49,15 @@ print('Selected device:', device)
 ## Data parameters
 resize = (112, 112)
 num_frames = 24
-batch_size = 1
+batch_size = 4
 num_workers = 4 # Number of threads for data loading
-small_version = True
+small_version = False
 ## Model parameters
 model_arch = 'r3d'
 block_arch = 34
 phi = 0.5
 growth_rate = 12
-nl_nums = 3
+nl_nums = 0
 pre_trained = False
 pre_trained_path = ''
 if pre_trained:
@@ -73,12 +73,12 @@ widen_factor = 1.0
 dropout = 0.0
 n_classes = 27
 ## Training parameters
-num_epochs = 1
+num_epochs = 10
 learning_rate = 0.001
 decay_step = 5 # Decay the learning rate after n epochs
 gamma = 0.1 # Decay the learning rate by gamma
 validation_interval = 1 # Perform validation after every n epochs
-save_interval = 1 # Save model after every n epochs
+save_interval = 5 # Save model after every n epochs
 
 # Define dataset
 data_dir = '../datasets/JESTER-V1'
