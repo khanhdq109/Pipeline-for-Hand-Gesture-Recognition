@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-# from torchsummary import summary
+from torchsummary import summary
 
 def conv3x3x3(in_planes, out_planes, stride = 1):
     return nn.Conv3d(
@@ -165,6 +165,71 @@ class TemporalTransitionLayer(nn.Module):
         out = self.pool(out)
         
         return out
+    
+class NLBlock(nn.Module):
+    
+    def __init__(self, in_channels, subsample = True):
+        super(NLBlock, self).__init__()
+        
+        self.n = 2
+        
+        self.in_channels = in_channels
+        self.inter_channels = in_channels // self.n
+        
+        # Theta, Phi, G transforms
+        self.theta = nn.Conv3d(in_channels, self.inter_channels, kernel_size = 1)
+        self.phi = nn.Conv3d(in_channels, self.inter_channels, kernel_size = 1)
+        self.g = nn.Conv3d(in_channels, self.inter_channels, kernel_size = 1)
+        
+        self.bn1 = nn.BatchNorm3d(self.inter_channels)
+        
+        # W transform to match input channel dimensions
+        self.W = nn.Conv3d(self.inter_channels, in_channels, kernel_size = 1)
+        self.bn2 = nn.BatchNorm3d(in_channels)
+        
+        nn.init.constant_(self.W.weight, 0)
+        nn.init.constant_(self.W.bias, 0)
+        
+        self.relu = nn.ReLU(inplace = True)
+        self.softmax = nn.Softmax(dim = -1)
+        
+        self.subsample = subsample
+        if self.subsample:
+            self.pool = nn.MaxPool3d(kernel_size = 2)
+        
+    def forward(self, x):
+        batch_size = x.size(0)
+        
+        # Theta, Phi and G projections
+        theta_x = self.relu(self.bn1(self.theta(x)))
+        theta_x = theta_x.view(batch_size, self.inter_channels, -1)
+        
+        phi_x = self.relu(self.bn1(self.phi(x)))
+        if self.subsample:
+            phi_x = self.pool(phi_x)
+        phi_x = phi_x.view(batch_size, self.inter_channels, -1)
+        
+        g_x = self.relu(self.bn1(self.g(x)))
+        if self.subsample:
+            g_x = self.pool(g_x)
+        g_x = g_x.view(batch_size, self.inter_channels, -1)
+        
+        # Compute attention map
+        theta_x = theta_x.permute(0, 2, 1) # (B, THW, C)
+        f = torch.matmul(theta_x, phi_x) # (B, THW, C) x (B, C, THW)
+        f_div_C = self.softmax(f) # (B, THW, THW)
+        
+        # Apply attention to G
+        y = torch.matmul(f_div_C, g_x.permute(0, 2, 1)) # (B, THW, THW) x (B, THW, C) --> (B, THW, C)
+        y = y.permute(0, 2, 1).contiguous().view(batch_size, self.inter_channels, *x.size()[2:]) 
+        
+        # Apply the final W transform
+        W_y = self.W(y)
+        W_y = self.bn2(W_y)
+        z = W_y + x # Residual connection
+        z = self.relu(z)
+        
+        return z
 
 class DenseNet(nn.Module):
     
@@ -181,6 +246,8 @@ class DenseNet(nn.Module):
         conv1_t_size = 7, # kernel size in t for the first conv layer
         conv1_t_stride = 1, # stride in t for the first conv layer
         no_max_pool = False, # whether to use max pool
+        nl_nums = 0, # number of non-local block,
+        nl_subsample = True, # apply subsample to non-local blocks
         n_classes = 27, # number of classes
         dropout = 0.0, # dropout rate
     ):
@@ -228,6 +295,7 @@ class DenseNet(nn.Module):
                 phi = phi,
                 dropout = dropout
             )
+        self.nl1 = NLBlock(self.in_planes, subsample = nl_subsample) if nl_nums >= 1 else None
         
         # Block 2
         self.block2 = self._make_dense_block(
@@ -250,6 +318,7 @@ class DenseNet(nn.Module):
                 phi = phi,
                 dropout = dropout
             )
+        self.nl2 = NLBlock(self.in_planes, subsample = nl_subsample) if nl_nums >= 2 else None
         
         # Block 3
         self.block3 = self._make_dense_block(
@@ -272,6 +341,7 @@ class DenseNet(nn.Module):
                 phi = phi,
                 dropout = dropout
             )
+        self.nl3 = NLBlock(self.in_planes, subsample = nl_subsample) if nl_nums >= 3 else None
         
         # Block 4
         self.block4 = self._make_dense_block(
@@ -322,12 +392,18 @@ class DenseNet(nn.Module):
             
         x = self.block1(x)
         x = self.trans1(x)
+        if self.nl1:
+            x = self.nl1(x)
         
         x = self.block2(x)
         x = self.trans2(x)
+        if self.nl2:
+            x = self.nl2(x)
         
         x = self.block3(x)
         x = self.trans3(x)
+        if self.nl3:
+            x = self.nl3(x)
         
         x = self.block4(x)
         x = self.bn(x)
@@ -401,18 +477,7 @@ def T3D(model_depth, **kwargs):
     return model
 
 def main():
-    """
-    model = D3D(
-        121,
-        phi = 0.5,
-        growth_rate = 12,
-        n_input_channels = 3,
-        conv1_t_size = 3,
-        conv1_t_stride = 1,
-        no_max_pool = True,
-        n_classes = 27,
-        dropout = 0.0
-    )
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     
     model = T3D(
         121,
@@ -427,10 +492,9 @@ def main():
         no_max_pool = True,
         n_classes = 27,
         dropout = 0.0
-    )
+    ).to(device)
     
     summary(model, (3, 30, 112, 112))
-    """
     
 if __name__ == '__main__':
     main()

@@ -72,7 +72,7 @@ def pred_video(
     video_id,
     video_path, 
     params,
-    model = '../models/classify/R3D/r3d-18_0-mp_10-epochs.pth',
+    model = '../models/classify/R3D/r3d-34_0-mp_10-epochs.pth',
     drop_frame = 0, # Drop n frames between 2 frames
 ):
     # Get parameters
@@ -196,7 +196,7 @@ def pred_video(
     
 def main():
     # Define path
-    video_id = 148089
+    video_id = 102653
     video_folder = '..\datasets\JESTER-V1\images'
     video_path = os.path.join(video_folder, str(video_id))
     video = os.path.join('demo\demo_input', str(video_id) + '.mp4')
@@ -212,9 +212,9 @@ def main():
         'num_frames': 30,
         # Model parameters
         'model_arch': 'r3d',
-        'block_arch': 18,
+        'block_arch': 34,
         'no_max_pool': True,
-        'n_classes': 28,
+        'n_classes': 27,
     }
     
     # Predict video
