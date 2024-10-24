@@ -248,7 +248,10 @@ def eval_on_test(
         plt.xlabel('Predicted Labels')
         plt.ylabel('True Labels')
         plt.title('Confusion Matrix')
-        name = f'logs/{model_arch}-{block_arch}{nmp}/confusion_matrix.png'
+        if nl_nums == 0:
+            name = f'logs/{model_arch}-{block_arch}{nmp}_{num_frames}frs/confusion_matrix.png'
+        else:
+            name = f'logs/{model_arch}-{block_arch}{nmp}_{nl_nums}-nl_{num_frames}frs/confusion_matrix.png'
         plt.savefig(name)
         
     print('Testing completed!!!')
