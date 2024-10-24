@@ -78,7 +78,7 @@ learning_rate = 0.001
 decay_step = 5 # Decay the learning rate after n epochs
 gamma = 0.1 # Decay the learning rate by gamma
 validation_interval = 1 # Perform validation after every n epochs
-save_interval = 5 # Save model after every n epochs
+save_interval = 1 # Save model after every n epochs
 
 # Define dataset
 data_dir = '../datasets/JESTER-V1'
