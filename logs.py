@@ -23,6 +23,7 @@ from network.R3D import R3D
 def save_training_metrics(
     model_arch, block_arch, nmp, pre_trained,
     epochs, train_loss, train_acc, val_acc,
+    num_frames,
     nl_nums = 0
 ):  
     print('=' * 80)
@@ -32,9 +33,9 @@ def save_training_metrics(
     if pre_trained:
         # Load the previous log
         if nl_nums == 0:
-            log = pd.read_csv(f'logs/{model_arch}-{block_arch}{nmp}/train.csv')
+            log = pd.read_csv(f'logs/{model_arch}-{block_arch}{nmp}_{num_frames}frs/train.csv')
         else:
-            log = pd.read_csv(f'logs/{model_arch}-{block_arch}{nmp}_{nl_nums}-nl/train.csv')
+            log = pd.read_csv(f'logs/{model_arch}-{block_arch}{nmp}_{nl_nums}-nl_{num_frames}frs/train.csv')
         # Append the new log
         new_metrics = {
             'epochs': epochs,
@@ -46,14 +47,14 @@ def save_training_metrics(
         log = pd.concat([log, new_metrics_df], ignore_index = True)
         # Save the log
         if nl_nums == 0:
-            log.to_csv(f'logs/{model_arch}-{block_arch}{nmp}/train.csv', index = False)
+            log.to_csv(f'logs/{model_arch}-{block_arch}{nmp}_{num_frames}frs/train.csv', index = False)
         else:
-            log.to_csv(f'logs/{model_arch}-{block_arch}{nmp}_{nl_nums}-nl/train.csv', index = False)
+            log.to_csv(f'logs/{model_arch}-{block_arch}{nmp}_{nl_nums}-nl_{num_frames}frs/train.csv', index = False)
     else:
         if nl_nums == 0:
-            Path(f'logs/{model_arch}-{block_arch}{nmp}').mkdir(exist_ok = True)
+            Path(f'logs/{model_arch}-{block_arch}{nmp}_{num_frames}frs').mkdir(exist_ok = True)
         else:
-            Path(f'logs/{model_arch}-{block_arch}{nmp}_{nl_nums}-nl').mkdir(exist_ok = True)
+            Path(f'logs/{model_arch}-{block_arch}{nmp}_{nl_nums}-nl_{num_frames}frs').mkdir(exist_ok = True)
         log = {
             'epochs': epochs,
             'train_loss': train_loss,
@@ -62,24 +63,25 @@ def save_training_metrics(
         }
         log = pd.DataFrame(log)
         if nl_nums == 0:
-            log.to_csv(f'logs/{model_arch}-{block_arch}{nmp}/train.csv', index = False)
+            log.to_csv(f'logs/{model_arch}-{block_arch}{nmp}_{num_frames}frs/train.csv', index = False)
         else:
-            log.to_csv(f'logs/{model_arch}-{block_arch}{nmp}_{nl_nums}-nl/train.csv', index = False)
+            log.to_csv(f'logs/{model_arch}-{block_arch}{nmp}_{nl_nums}-nl_{num_frames}frs/train.csv', index = False)
 
     print('Training metrics saved!!!')
     print('=' * 80)
 
 def visualize_training_metrics(
     model_arch, block_arch, nmp,
+    num_frames,
     nl_nums = 0
 ):
     print('Visualizing training metrics...')
     
     # Read the log file
     if nl_nums == 0:
-        logs = pd.read_csv(f'logs/{model_arch}-{block_arch}{nmp}/train.csv')
+        logs = pd.read_csv(f'logs/{model_arch}-{block_arch}{nmp}_{num_frames}frs/train.csv')
     else:
-        logs = pd.read_csv(f'logs/{model_arch}-{block_arch}{nmp}_{nl_nums}-nl/train.csv')
+        logs = pd.read_csv(f'logs/{model_arch}-{block_arch}{nmp}_{nl_nums}-nl_{num_frames}frs/train.csv')
     # Extract the metrics
     epochs = logs['epochs']
     train_loss = logs['train_loss']
@@ -87,9 +89,9 @@ def visualize_training_metrics(
     val_acc = logs['val_acc']
     # Create folder to save plots
     if nl_nums == 0:
-        save_folder = f'logs/{model_arch}-{block_arch}{nmp}/plots'
+        save_folder = f'logs/{model_arch}-{block_arch}{nmp}_{num_frames}frs/plots'
     else:
-        save_folder = f'logs/{model_arch}-{block_arch}{nmp}_{nl_nums}-nl/plots'
+        save_folder = f'logs/{model_arch}-{block_arch}{nmp}_{nl_nums}-nl_{num_frames}frs/plots'
     Path(save_folder).mkdir(exist_ok = True)
     
     # Train loss
@@ -115,7 +117,7 @@ def visualize_training_metrics(
 
 def eval_on_test(
     model_arch, block_arch, 
-    nmp, nl_nums,
+    nmp, num_frames, nl_nums,
     epoch
 ):
     print('Evaluating on test data...')
@@ -134,7 +136,6 @@ def eval_on_test(
     
     # Set parameters
     resize = (112, 112)
-    num_frames = 24
     batch_size = 1
     num_workers = 4 # Number of threads for data loading
     small_version = False
@@ -182,9 +183,9 @@ def eval_on_test(
     ).to(device)
     
     if nl_nums == 0:
-        name = f'../models/classify/{model_arch.upper()}/{model_arch}-{block_arch}{nmp}_{epoch}-epochs.pth'
+        name = f'../models/classify/{model_arch.upper()}/{model_arch}-{block_arch}{nmp}_{epoch}-epochs_{num_frames}frs.pth'
     else:
-        name = f'../models/classify/{model_arch.upper()}/{model_arch}-{block_arch}{nmp}_{nl_nums}-nl_{epoch}-epochs.pth'
+        name = f'../models/classify/{model_arch.upper()}/{model_arch}-{block_arch}{nmp}_{nl_nums}-nl_{epoch}-epochs_{num_frames}frs.pth'
     model.load_state_dict(
         torch.load(name, map_location = device, weights_only = True),
         strict = False
@@ -236,9 +237,9 @@ def eval_on_test(
         })
         # Save metrics to a csv file
         if nl_nums == 0:
-            name = f'logs/{model_arch}-{block_arch}{nmp}/test.csv'
+            name = f'logs/{model_arch}-{block_arch}{nmp}_{num_frames}frs/test.csv'
         else:
-            name = f'logs/{model_arch}-{block_arch}{nmp}_{nl_nums}-nl/test.csv'
+            name = f'logs/{model_arch}-{block_arch}{nmp}_{nl_nums}-nl_{num_frames}frs/test.csv'
         metrics_df.to_csv(name, index_label = 'Class')
         
         # Plot the confusion matrix
@@ -261,6 +262,7 @@ def main():
     model_arch = loaded_metrics['model_arch']
     block_arch = loaded_metrics['block_arch']
     nmp = loaded_metrics['nmp']
+    num_frames = loaded_metrics['num_frames']
     nl_nums = loaded_metrics['nl_nums']
     pre_trained = loaded_metrics['pre_trained']
     # Extract individual metrics lists
@@ -273,19 +275,22 @@ def main():
     save_training_metrics(
         model_arch, block_arch, nmp, pre_trained,
         epochs, train_loss, train_acc, val_acc,
+        num_frames,
         nl_nums
     )
 
     # Visualize the training metrics
     visualize_training_metrics(
         model_arch, block_arch, nmp,
+        num_frames,
         nl_nums
     )
     
     # Evaluate the model on test set
     eval_on_test(
         model_arch, block_arch, 
-        nmp, nl_nums,
+        nmp, num_frames,
+        nl_nums,
         epochs[-1]
     )
 

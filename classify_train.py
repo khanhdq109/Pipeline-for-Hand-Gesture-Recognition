@@ -22,11 +22,11 @@ def load_pretrained_weights(model, pre_trained_path, device):
         )
         print('Pre-trained model loaded successfully!')
 
-def save_model(model, model_arch, block_arch, nmp, epoch, pre_trained_epochs, nl_nums = 0):
+def save_model(model, model_arch, block_arch, nmp, epoch, pre_trained_epochs, num_frames, nl_nums = 0):
     if nl_nums == 0:
-        name = f'../models/classify/{model_arch.upper()}/{model_arch}-{block_arch}{nmp}_{epoch + pre_trained_epochs + 1}-epochs.pth'
+        name = f'../models/classify/{model_arch.upper()}/{model_arch}-{block_arch}{nmp}_{epoch + pre_trained_epochs + 1}-epochs_{num_frames}frs.pth'
     else:
-        name = f'../models/classify/{model_arch.upper()}/{model_arch}-{block_arch}{nmp}_{nl_nums}-nl_{epoch + pre_trained_epochs + 1}-epochs.pth'
+        name = f'../models/classify/{model_arch.upper()}/{model_arch}-{block_arch}{nmp}_{nl_nums}-nl_{epoch + pre_trained_epochs + 1}-epochs_{num_frames}frs.pth'
     torch.save(model.state_dict(), name)
     
 def save_metrics(metrics_dict, json_path):
@@ -224,6 +224,7 @@ for epoch in range(num_epochs):
             model,
             model_arch, block_arch, nmp,
             epoch, pre_trained_epochs,
+            num_frames,
             nl_nums
         )
 
@@ -235,6 +236,7 @@ metrics_dict = {
     'model_arch': model_arch,
     'block_arch': block_arch,
     'nmp': nmp,
+    'num_frames': num_frames,
     'nl_nums': nl_nums,
     'pre_trained': pre_trained,
     # Metrics
