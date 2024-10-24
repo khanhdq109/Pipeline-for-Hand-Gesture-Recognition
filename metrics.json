@@ -1,1 +1,1 @@
-{"model_arch": "r3d", "block_arch": 34, "nmp": "_0-mp", "num_frames": 30, "nl_nums": 3, "pre_trained": false, "epochs": [1], "train_loss": [3.9069379763261174], "train_acc": [0.03713080168776371], "val_acc": [0.05442176870748299]}
+{"model_arch": "r3d", "block_arch": 34, "nmp": "_0-mp", "num_frames": 30, "nl_nums": 3, "pre_trained": false, "epochs": [1], "train_loss": [3.861603272866599], "train_acc": [0.049789029535864976], "val_acc": [0.047619047619047616]}
