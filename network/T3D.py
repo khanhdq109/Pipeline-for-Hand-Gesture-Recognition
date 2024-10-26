@@ -171,46 +171,44 @@ class NLBlock(nn.Module):
     def __init__(self, in_channels, subsample = True):
         super(NLBlock, self).__init__()
         
-        self.n = 2
+        self.inter_channels = max(in_channels // 2, 1)  # Prevent zero channels
         
-        self.in_channels = in_channels
-        self.inter_channels = in_channels // self.n
+        # Batch norm
+        self.bn1 = nn.BatchNorm3d(in_channels)
+        self.bn2 = nn.BatchNorm3d(self.inter_channels)
         
         # Theta, Phi, G transforms
         self.theta = nn.Conv3d(in_channels, self.inter_channels, kernel_size = 1)
         self.phi = nn.Conv3d(in_channels, self.inter_channels, kernel_size = 1)
         self.g = nn.Conv3d(in_channels, self.inter_channels, kernel_size = 1)
         
-        self.bn1 = nn.BatchNorm3d(self.inter_channels)
-        
         # W transform to match input channel dimensions
         self.W = nn.Conv3d(self.inter_channels, in_channels, kernel_size = 1)
-        self.bn2 = nn.BatchNorm3d(in_channels)
         
+        # Initialize W transform weights to zero
         nn.init.constant_(self.W.weight, 0)
         nn.init.constant_(self.W.bias, 0)
         
+        # Additional layers
         self.relu = nn.ReLU(inplace = True)
         self.softmax = nn.Softmax(dim = -1)
-        
         self.subsample = subsample
         if self.subsample:
             self.pool = nn.MaxPool3d(kernel_size = 2)
         
     def forward(self, x):
-        batch_size = x.size(0)
+        batch_size, _, t, h, w = x.size()
         
         # Theta, Phi and G projections
-        theta_x = self.relu(self.bn1(self.theta(x)))
-        theta_x = theta_x.view(batch_size, self.inter_channels, -1)
+        theta_x = self.theta(self.relu(self.bn1(x))).view(batch_size, self.inter_channels, -1)
         
-        phi_x = self.relu(self.bn1(self.phi(x)))
-        if self.subsample:
+        phi_x = self.phi(self.relu(self.bn1(x)))
+        if self.subsample and t > 1 and h > 1 and w > 1:
             phi_x = self.pool(phi_x)
         phi_x = phi_x.view(batch_size, self.inter_channels, -1)
         
-        g_x = self.relu(self.bn1(self.g(x)))
-        if self.subsample:
+        g_x = self.g(self.relu(self.bn1(x)))
+        if self.subsample and t > 1 and h > 1 and w > 1:
             g_x = self.pool(g_x)
         g_x = g_x.view(batch_size, self.inter_channels, -1)
         
@@ -224,10 +222,9 @@ class NLBlock(nn.Module):
         y = y.permute(0, 2, 1).contiguous().view(batch_size, self.inter_channels, *x.size()[2:]) 
         
         # Apply the final W transform
-        W_y = self.W(y)
-        W_y = self.bn2(W_y)
+        W_y = self.relu(self.bn2(y))
+        W_y = self.W(W_y)
         z = W_y + x # Residual connection
-        z = self.relu(z)
         
         return z
 
@@ -255,6 +252,7 @@ class DenseNet(nn.Module):
         
         self.phi = phi
         self.growth_rate = growth_rate
+        self.nl_nums = nl_nums
         
         self.in_planes = 2 * growth_rate
         self.no_max_pool = no_max_pool
@@ -273,6 +271,7 @@ class DenseNet(nn.Module):
             stride = 1,
             padding = 1
         )
+        if self.nl_nums >= 1: self.nl0 = NLBlock(self.in_planes, nl_subsample)
         
         # Block 1
         self.block1 = self._make_dense_block(
@@ -280,6 +279,7 @@ class DenseNet(nn.Module):
             dropout = dropout,
             is_first = True
         )
+        if self.nl_nums >= 2: self.nl1 = NLBlock(self.in_planes, nl_subsample)
         if isinstance(transition, TemporalTransitionLayer):
             self.trans1 = transition(
                 self.in_planes,
@@ -295,7 +295,6 @@ class DenseNet(nn.Module):
                 phi = phi,
                 dropout = dropout
             )
-        self.nl1 = NLBlock(self.in_planes, subsample = nl_subsample) if nl_nums >= 1 else None
         
         # Block 2
         self.block2 = self._make_dense_block(
@@ -303,6 +302,7 @@ class DenseNet(nn.Module):
             dropout = dropout,
             is_first = False
         )
+        if self.nl_nums >= 3: self.nl2 = NLBlock(self.in_planes, nl_subsample)
         if isinstance(transition, TemporalTransitionLayer):
             self.trans2 = transition(
                 self.in_planes,
@@ -318,7 +318,6 @@ class DenseNet(nn.Module):
                 phi = phi,
                 dropout = dropout
             )
-        self.nl2 = NLBlock(self.in_planes, subsample = nl_subsample) if nl_nums >= 2 else None
         
         # Block 3
         self.block3 = self._make_dense_block(
@@ -326,6 +325,7 @@ class DenseNet(nn.Module):
             dropout = dropout,
             is_first = False
         )
+        if self.nl_nums >= 4: self.nl3 = NLBlock(self.in_planes, nl_subsample)
         if isinstance(transition, TemporalTransitionLayer):
             self.trans3 = transition(
                 self.in_planes,
@@ -341,7 +341,6 @@ class DenseNet(nn.Module):
                 phi = phi,
                 dropout = dropout
             )
-        self.nl3 = NLBlock(self.in_planes, subsample = nl_subsample) if nl_nums >= 3 else None
         
         # Block 4
         self.block4 = self._make_dense_block(
@@ -349,6 +348,7 @@ class DenseNet(nn.Module):
             dropout = dropout,
             is_first = False
         )
+        if self.nl_nums >= 5: self.nl4 = NLBlock(self.in_planes, nl_subsample)
         
         # Final batch norm
         self.bn = nn.BatchNorm3d(self.in_planes)
@@ -389,23 +389,28 @@ class DenseNet(nn.Module):
         x = self.conv1(x)
         if not self.no_max_pool:
             x = self.maxpool(x)
+        if self.nl_nums >= 1:
+            x = self.nl0(x)
             
         x = self.block1(x)
-        x = self.trans1(x)
-        if self.nl1:
+        if self.nl_nums >= 2:
             x = self.nl1(x)
+        x = self.trans1(x)
         
         x = self.block2(x)
-        x = self.trans2(x)
-        if self.nl2:
+        if self.nl_nums >= 3:
             x = self.nl2(x)
+        x = self.trans2(x)
         
         x = self.block3(x)
-        x = self.trans3(x)
-        if self.nl3:
+        if self.nl_nums >= 4:
             x = self.nl3(x)
+        x = self.trans3(x)
         
         x = self.block4(x)
+        if self.nl_nums >= 5:
+            x = self.nl4(x)
+        
         x = self.bn(x)
         x = self.relu(x)
         
@@ -490,6 +495,7 @@ def main():
         conv1_t_size = 3,
         conv1_t_stride = 1,
         no_max_pool = True,
+        nl_nums = 3,
         n_classes = 27,
         dropout = 0.0
     ).to(device)

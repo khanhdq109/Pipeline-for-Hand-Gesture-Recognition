@@ -134,20 +134,18 @@ class NLBlock(nn.Module):
             self.pool = nn.MaxPool3d(kernel_size = 2)
         
     def forward(self, x):
-        batch_size = x.size(0)
+        batch_size, channels, time, height, width = x.size()
         
         # Theta, Phi and G projections
         theta_x = self.relu(self.bn1(self.theta(x)))
         theta_x = theta_x.view(batch_size, self.inter_channels, -1)
         
         phi_x = self.relu(self.bn1(self.phi(x)))
-        if self.subsample:
-            phi_x = self.pool(phi_x)
-        phi_x = phi_x.view(batch_size, self.inter_channels, -1)
-        
         g_x = self.relu(self.bn1(self.g(x)))
-        if self.subsample:
+        if self.subsample and time > 1 and height > 1 and width > 1:
+            phi_x = self.pool(phi_x)
             g_x = self.pool(g_x)
+        phi_x = phi_x.view(batch_size, self.inter_channels, -1)
         g_x = g_x.view(batch_size, self.inter_channels, -1)
         
         # Compute attention map
