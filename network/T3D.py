@@ -500,7 +500,7 @@ def main():
         dropout = 0.0
     ).to(device)
     
-    summary(model, (3, 30, 112, 112))
+    summary(model, (3, 24, 112, 112))
     
 if __name__ == '__main__':
     main()

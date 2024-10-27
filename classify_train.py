@@ -9,7 +9,7 @@ from torch.utils.data import DataLoader
 from torchvision import transforms
 
 from data_loader import JesterV1, collate_fn
-from network.R3D import R3D
+from network.T3D import T3D
 
 """
     Support functions...
@@ -48,16 +48,16 @@ print('Selected device:', device)
 # Set training parameters
 ## Data parameters
 resize = (112, 112)
-num_frames = 30
-batch_size = 1
+num_frames = 24
+batch_size = 4
 num_workers = 4 # Number of threads for data loading
 small_version = False
 ## Model parameters
-model_arch = 'r3d'
-block_arch = 34
+model_arch = 't3d'
+block_arch = 121
 phi = 0.5
 growth_rate = 12
-nl_nums = 3
+nl_nums = 0
 pre_trained = False
 pre_trained_path = ''
 if pre_trained:
@@ -73,9 +73,9 @@ widen_factor = 1.0
 dropout = 0.0
 n_classes = 27
 ## Training parameters
-num_epochs = 10
+num_epochs = 25
 learning_rate = 0.001
-decay_step = 3 # Decay the learning rate after n epochs
+decay_step = 5 # Decay the learning rate after n epochs
 gamma = 0.1 # Decay the learning rate by gamma
 validation_interval = 1 # Perform validation after every n epochs
 save_interval = 1 # Save model after every n epochs
@@ -114,15 +114,20 @@ train_loader = DataLoader(train_dataset, batch_size = batch_size, shuffle = True
 val_loader = DataLoader(val_dataset, batch_size = batch_size, shuffle = True, num_workers = num_workers, collate_fn = collate_fn) # Validation data loader
 
 # Define model
-model = R3D(
+model = T3D(
     block_arch,
+    phi = phi,
+    growth_rate = growth_rate,
+    temporal_expansion = 1,
+    transition_t1_size = [1, 3, 6],
+    transition_t_size = [1, 3, 4],
     n_input_channels = 3,
-    conv1_t_size = 7,
+    conv1_t_size = 3,
     conv1_t_stride = 1,
     no_max_pool = no_max_pool,
-    widen_factor = widen_factor,
     nl_nums = nl_nums,
-    n_classes = n_classes
+    n_classes = n_classes,
+    dropout = dropout
 ).to(device)
 
 # Load pre-trained weights if pre_trained is True
