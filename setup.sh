@@ -15,6 +15,7 @@ pip install torchsummary
 sudo apt update
 sudo apt search vim
 sudo apt install vim
+sudo apt install zip
 
 # Setup directory
 cd ..
