@@ -49,7 +49,7 @@ print('Selected device:', device)
 ## Data parameters
 resize = (112, 112)
 num_frames = 24
-batch_size = 4
+batch_size = 1
 num_workers = 4 # Number of threads for data loading
 small_version = False
 ## Model parameters
@@ -57,7 +57,7 @@ model_arch = 't3d'
 block_arch = 121
 phi = 0.5
 growth_rate = 12
-nl_nums = 0
+nl_nums = 3
 pre_trained = False
 pre_trained_path = ''
 if pre_trained:

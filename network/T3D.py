@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from torchsummary import summary
+# from torchsummary import summary
 
 def conv3x3x3(in_planes, out_planes, stride = 1):
     return nn.Conv3d(
@@ -482,6 +482,7 @@ def T3D(model_depth, **kwargs):
     return model
 
 def main():
+    """
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     
     model = T3D(
@@ -501,6 +502,7 @@ def main():
     ).to(device)
     
     summary(model, (3, 24, 112, 112))
+    """
     
 if __name__ == '__main__':
     main()
