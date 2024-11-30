@@ -6,16 +6,15 @@ from network.T3D import T3D
 import pickle  # For deserializing frames
 import logging
 
+# Initialize Flask app and logging
 app = Flask(__name__)
+logging.basicConfig(level = logging.INFO, format = "%(asctime)s - %(levelname)s - %(message)s")
 
-# Configure logging
-logging.basicConfig(level = logging.INFO)
-
-# Select the device
+# Select device
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 logging.info(f"Using device: {device}")
 
-# Load the model
+# Load model
 model_path = '../models/classify/T3D/t3d-121_0-mp_24-epochs_30frs.pth'
 model = T3D(
     121,
@@ -33,7 +32,7 @@ model = T3D(
 ).to(device)
 
 # Load model weights and move to the appropriate device
-model.load_state_dict(torch.load(model_path, map_location = device))
+model.load_state_dict(torch.load(model_path, map_location = device, weights_only = True))
 model.eval()
 logging.info("Model loaded successfully and moved to the device.")
 
@@ -50,6 +49,7 @@ def infer():
             outputs = model(frames_tensor)
             _, pred = outputs.max(1)
             predicted_label = str(pred.item())
+            
         return jsonify({"predicted_label": predicted_label})
     
     except Exception as e:
