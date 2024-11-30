@@ -12,7 +12,7 @@ class GestureRecognizer:
         resize = (112, 112),
         num_frames = 24,
         drop_frame = 0,
-        server_url = "http://127.0.0.1:8080/infer"
+        server_url = "http://127.0.0.1:5000/infer"
     ):
         self.labels = labels
         self.resize = resize
@@ -72,12 +72,15 @@ class GestureRecognizer:
                     # Send frames to server for inference
                     response = requests.post(self.server_url, data = frames_data, headers = {"Content-Type": "application/octet-stream"})
                     if response.status_code == 200:
-                        predicted_label = response.json().get("predicted_label")
+                        predicted_label = response.json().get("predicted_label", "Unknown")
                         print(f"Prediction: {predicted_label}")
                     else:
                         print(f"Error from server: {response.text}")
+                        predicted_label = "Error"
+                        
                 except Exception as e:
                     print(f"Error in communication with server: {e}")
+                    predicted_label = "Error"
                 
                 # Display the result
                 font = cv2.FONT_HERSHEY_SIMPLEX
