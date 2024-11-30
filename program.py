@@ -105,6 +105,7 @@ class GestureRecognizer:
             if len(frames) == self.num_frames:
                 # Convert deque to list of tensors and stack along the time dimension
                 input_frames = torch.stack(list(frames), dim = 0).permute(1, 0, 2, 3).unsqueeze(0).to(self.device)
+                print(input_frames.shape)
                 
                 with torch.no_grad():
                     output = model(input_frames)

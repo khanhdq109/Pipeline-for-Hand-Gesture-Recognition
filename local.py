@@ -9,10 +9,10 @@ class GestureRecognizer:
     def __init__(
         self,
         labels,
-        resize = (112, 112),
-        num_frames = 24,
-        drop_frame = 0,
-        server_url = "http://127.0.0.1:5000/infer"
+        resize=(112, 112),
+        num_frames=24,
+        drop_frame=0,
+        server_url="http://127.0.0.1:5000/infer"
     ):
         self.labels = labels
         self.resize = resize
@@ -38,7 +38,7 @@ class GestureRecognizer:
             raise RuntimeError("Failed to open the default camera.")
         
         frame_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-        frames = deque(maxlen = self.num_frames)
+        frames = deque(maxlen=self.num_frames)
         frame_count = 0
 
         print("Starting gesture recognition. Press 'q' to quit.")
@@ -61,23 +61,29 @@ class GestureRecognizer:
             # Convert to RGB and apply transformations
             frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             frame_tensor = transform(frame_rgb)
-            frames.append(frame_tensor.numpy())
+            frames.append(frame_tensor)
             
             # If enough frames are collected, send to server for prediction
             if len(frames) == self.num_frames:
                 try:
+                    # Convert deque to a numpy array with the shape (num_frames, channels, height, width)
+                    frames_data = np.stack([f.numpy() for f in frames], axis=0)  # Stack along the time dimension
+                    
+                    # Reorder to match the expected input shape (batch_size, channels, num_frames, height, width)
+                    frames_data = np.transpose(frames_data, (0, 3, 1, 2))  # (num_frames, height, width, channels) -> (channels, num_frames, height, width)
+                    frames_data = frames_data[np.newaxis, ...]  # Add batch dimension, now the shape is (1, channels, num_frames, height, width)
+                    
                     # Serialize frames using pickle
-                    frames_data = pickle.dumps(np.array(frames))
+                    frames_data_serialized = pickle.dumps(frames_data)
                     
                     # Send frames to server for inference
-                    response = requests.post(self.server_url, data = frames_data, headers = {"Content-Type": "application/octet-stream"})
+                    response = requests.post(self.server_url, data=frames_data_serialized, headers={"Content-Type": "application/octet-stream"})
                     if response.status_code == 200:
                         predicted_label = response.json().get("predicted_label", "Unknown")
                         print(f"Prediction: {predicted_label}")
                     else:
                         print(f"Error from server: {response.text}")
                         predicted_label = "Error"
-                        
                 except Exception as e:
                     print(f"Error in communication with server: {e}")
                     predicted_label = "Error"
@@ -107,7 +113,7 @@ class GestureRecognizer:
         # Release resources
         cap.release()
         cv2.destroyAllWindows()
-        
+
 def main():
     labels = [
         'Swiping Left', 'Swiping Right', 'Swiping Down', 'Swiping Up',
@@ -121,9 +127,9 @@ def main():
     ]
     
     program = GestureRecognizer(
-        labels = labels,
-        num_frames = 30,
-        drop_frame = 0
+        labels=labels,
+        num_frames=30,
+        drop_frame=0
     )
     
     program.run()
