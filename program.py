@@ -1,8 +1,8 @@
 import cv2
-
 import torch
 from torchvision import transforms
 from network.T3D import T3D
+from collections import deque
 
 class GestureRecognizer:
     def __init__(
@@ -14,18 +14,15 @@ class GestureRecognizer:
         no_max_pool = True, n_classes = 27,
         drop_frame = 0
     ):
-        # Model path
+        # Initialize params
         self.model_path = model_path
-        # Labels
         self.labels = labels
-        # Model parameters
         self.model_arch = model_arch
         self.block_arch = block_arch
         self.resize = resize
         self.num_frames = num_frames
         self.no_max_pool = no_max_pool
         self.n_classes = n_classes
-        # Drop n frames between 2 frames
         self.drop_frame = drop_frame
         
         # Select device
@@ -79,7 +76,7 @@ class GestureRecognizer:
             raise RuntimeError("Failed to open the default camera.")
         
         frame_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-        frames = []
+        frames = deque(maxlen = self.num_frames) # Use a deque(circular buffer) to store frames
         frame_count = 0
         
         print("Starting gesture recognition. Press 'q' to quit.")
@@ -106,8 +103,8 @@ class GestureRecognizer:
             
             # If enough frames are collected, make a prediction
             if len(frames) == self.num_frames:
-                # Prepare input tensor
-                input_frames = torch.stack(frames, dim = 0).permute(1, 0, 2, 3).unsqueeze(0).to(self.device)
+                # Convert deque to list of tensors and stack along the time dimension
+                input_frames = torch.stack(list(frames), dim = 0).permute(1, 0, 2, 3).unsqueeze(0).to(self.device)
                 
                 with torch.no_grad():
                     output = model(input_frames)
@@ -130,9 +127,6 @@ class GestureRecognizer:
                 
                 # Log prediction
                 print(f"Prediction: {predicted_label} (Class {pred.item()})")
-
-                # Remove the first frame from the list
-                frames.pop(0)
                 
             # Display the resulting frame
             cv2.imshow('Frame', frame)
@@ -182,11 +176,11 @@ def main():
         labels = labels,
         num_frames = 30,
         model_arch = 't3d', block_arch = 121,
-        drop_frame = 0,
+        drop_frame = 5,
         n_classes = 27
     )
     
     program.run()
 
 if __name__ == '__main__':
-    main()       
+    main()
