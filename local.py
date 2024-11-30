@@ -12,7 +12,7 @@ class GestureRecognizer:
         resize = (112, 112),
         num_frames = 24,
         drop_frame = 0,
-        server_url = "http://188.26.201.29:5000/infer"
+        server_url = "http://127.0.0.1:8080/infer"
     ):
         self.labels = labels
         self.resize = resize
