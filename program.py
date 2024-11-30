@@ -8,6 +8,7 @@ class GestureRecognizer:
     def __init__(
         self,
         model_path,
+        labels,
         model_arch = 't3d', block_arch = 121,
         resize = (112, 112), num_frames = 24,
         no_max_pool = True, n_classes = 27,
@@ -15,6 +16,8 @@ class GestureRecognizer:
     ):
         # Model path
         self.model_path = model_path
+        # Labels
+        self.labels = labels
         # Model parameters
         self.model_arch = model_arch
         self.block_arch = block_arch
@@ -25,7 +28,11 @@ class GestureRecognizer:
         # Drop n frames between 2 frames
         self.drop_frame = drop_frame
         
-    def load_model(self, device):
+        # Select device
+        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        print(f"Using device: {self.device}")
+        
+    def load_model(self):
         model = T3D(
             self.block_arch,
             phi = 0.5,
@@ -39,14 +46,16 @@ class GestureRecognizer:
             no_max_pool = self.no_max_pool,
             n_classes = self.n_classes,
             dropout = 0.0
-        )
+        ).to(self.device)
         
-        # Load model
         try:
-            model.load_state_dict(torch.load(self.model_path, map_location = device))
+            model.load_state_dict(torch.load(self.model_path, map_location=self.device))
+            print("Model loaded successfully!")
+        except FileNotFoundError:
+            raise FileNotFoundError(f"Model file not found at {self.model_path}")
         except RuntimeError as e:
-            raise ValueError(f"Failed to load the model from {self.model_path}. Ensure the architecture and weights match.") from e
-        
+            raise ValueError("Ensure the model architecture matches the weights.") from e
+
         return model
     
     def run(self):
@@ -60,100 +69,84 @@ class GestureRecognizer:
             )
         ])
         
-        # Choose device
-        if torch.cuda.is_available():
-            device = torch.device('cuda')
-        else:
-            device = torch.device('cpu')
-        
         # Load model
-        model = self.load_model(device)
+        model = self.load_model()
+        model.eval()
         
-        # Use the default camera as the video source
+        # Initialize camera
         cap = cv2.VideoCapture(0)
-        frame_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        if not cap.isOpened():
+            raise RuntimeError("Failed to open the default camera.")
         
-        count = 0
+        frame_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
         frames = []
+        frame_count = 0
+        
+        print("Starting gesture recognition. Press 'q' to quit.")
         while True:
-            # Update count
-            count += 1
+            frame_count += 1
+            
             # Drop frames
-            if count % (self.drop_frame + 1) != 0:
+            if frame_count % (self.drop_frame + 1) != 0:
                 continue
             
             # Read frame
-            _, frame = cap.read()
-            if frame is None:
+            ret, frame = cap.read()
+            if not ret or frame is None:
+                print("Failed to capture frame. Exiting...")
                 break
+            
             # Flip the frame horizontally
             frame = cv2.flip(frame, 1)
             
-            # Convert to RGB
+            # Convert to RGB and apply transformations
             frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            # Apply transformations
             frame_tensor = transform(frame_rgb)
             frames.append(frame_tensor)
             
             # If enough frames are collected, make a prediction
             if len(frames) == self.num_frames:
-                # Stack frames along the time dimension
-                input_frames = torch.stack(frames, dim = 0) # (T x C x H x W)
-                input_frames = input_frames.permute(1, 0, 2, 3) # (C x T x H x W)
-                input_frames = input_frames.unsqueeze(0) # Add batch dimension
-                input_frames = input_frames.to(device)
+                # Prepare input tensor
+                input_frames = torch.stack(frames, dim = 0).permute(1, 0, 2, 3).unsqueeze(0).to(self.device)
                 
                 with torch.no_grad():
-                    # Set model to evaluation mode
-                    model.eval()
-                    # Forward pass
                     output = model(input_frames)
-                    # Get prediction
                     _, pred = output.max(1)
-                    # Get the correspoding label name
-                    predicted_label = labels[pred.item()]
+                    predicted_label = self.labels[pred.item()]
                 
-                print(pred, predicted_label)
-                
-                # Display the result on the frame at the bottom with red color
+                # Display the result
                 font = cv2.FONT_HERSHEY_SIMPLEX
-                bottom_left_corner_of_text = (5, frame_height - 10)  # Adjust the Y-coordinate for the bottom
-                font_scale = 0.25
-                font_color = (0, 0, 255)  # Red color in BGR format
-                font_thickness = 1
+                bottom_left_corner = (5, frame_height - 10)
                 cv2.putText(
                     frame,
-                    f'{predicted_label} ({pred.item()})',
-                    bottom_left_corner_of_text, font, font_scale, font_color, font_thickness,
-                    cv2.LINE_AA
+                    f"{predicted_label} ({pred.item()})",
+                    bottom_left_corner,
+                    font,
+                    0.5,
+                    (0, 0, 255),
+                    1,
+                    cv2.LINE_AA,
                 )
                 
-                # Remove the first frame
-                frames = frames[1:]
+                # Log prediction
+                print(f"Prediction: {predicted_label} (Class {pred.item()})")
+
+                # Remove the first frame from the list
+                frames.pop(0)
                 
             # Display the resulting frame
             cv2.imshow('Frame', frame)
             
             # Press Q on keyboard to stop recording
-            if cv2.waitKey(25) & 0xFF == ord('q'):
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                print("Exiting gesture recognition...")
                 break
             
-        # Release the video capture object
+        # Release resources
         cap.release()
-        # Close all the frames
         cv2.destroyAllWindows()
 
 def main():
-    program = GestureRecognizer(
-        model_path = '../models/classify/T3D/t3d-121_0-mp_25-epochs_24frs.pth',
-        model_arch = 't3d', block_arch = 121,
-        drop_frame = 0,
-        n_classes = 27
-    )
-    
-    program.run()
-
-if __name__ == '__main__':
     labels = [
         'Swiping Left',
         'Swiping Right',
@@ -184,4 +177,16 @@ if __name__ == '__main__':
         'Doing other things',
     ]
     
+    program = GestureRecognizer(
+        model_path = '../models/classify/T3D/t3d-121_0-mp_24-epochs_30frs.pth',
+        labels = labels,
+        num_frames = 30,
+        model_arch = 't3d', block_arch = 121,
+        drop_frame = 0,
+        n_classes = 27
+    )
+    
+    program.run()
+
+if __name__ == '__main__':
     main()       
