@@ -18,7 +18,7 @@ logging.info(f"Using device: {device}")
 # Load the model
 model_path = '../models/classify/T3D/t3d-121_0-mp_24-epochs_30frs.pth'
 model = T3D(
-    block_arch = 121,
+    121,
     phi = 0.5,
     growth_rate = 12,
     temporal_expansion = 1,
