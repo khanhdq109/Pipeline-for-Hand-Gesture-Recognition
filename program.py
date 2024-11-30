@@ -2,16 +2,14 @@ import cv2
 
 import torch
 from torchvision import transforms
-from network.R3D import R3D
-from network.R2Plus1D import R2Plus1D
-from network.T3D import D3D, T3D
+from network.T3D import T3D
 
 class GestureRecognizer:
     def __init__(
         self,
         model_path,
-        model_arch = 'r3d', block_arch = 121,
-        resize = (112, 112), num_frames = 30,
+        model_arch = 't3d', block_arch = 121,
+        resize = (112, 112), num_frames = 24,
         no_max_pool = True, n_classes = 27,
         drop_frame = 0
     ):
@@ -28,58 +26,26 @@ class GestureRecognizer:
         self.drop_frame = drop_frame
         
     def load_model(self, device):
-        if self.model_arch == 'r3d':
-            model = R3D(
-                self.block_arch,
-                n_input_channels = 3,
-                conv1_t_size = 7,
-                conv1_t_stride = 1,
-                no_max_pool = self.no_max_pool,
-                widen_factor = 1,
-                n_classes = self.n_classes
-            ).to(device)
-        elif self.model_arch == 'r2plus1d':
-            model = R2Plus1D(
-                self.block_arch,
-                n_input_channels = 3,
-                conv1_t_size = 7,
-                conv1_t_stride = 1,
-                no_max_pool = self.no_max_pool,
-                widen_factor = 1,
-                n_classes = self.n_classes
-            ).to(device)
-        elif self.model_arch == 't3d':
-            model = T3D(
-                self.block_arch,
-                phi = 0.5,
-                growth_rate = 12,
-                temporal_expansion = 1,
-                transition_t1_size = [1, 3, 6],
-                transition_t_size = [1, 3, 4],
-                n_input_channels = 3,
-                conv1_t_size = 3,
-                conv1_t_stride = 1,
-                no_max_pool = self.no_max_pool,
-                n_classes = self.n_classes,
-                dropout = 0.0
-            )
-        elif self.model_arch == 'd3d':
-            model = D3D(
-                self.block_arch,
-                phi = 0.5,
-                growth_rate = 12,
-                n_input_channels = 3,
-                conv1_t_size = 3,
-                conv1_t_stride = 1,
-                no_max_pool = self.no_max_pool,
-                n_classes = self.n_classes,
-                dropout = 0.0
-            ).to(device)
-        else:
-            raise ValueError('Model architecture not supported')
+        model = T3D(
+            self.block_arch,
+            phi = 0.5,
+            growth_rate = 12,
+            temporal_expansion = 1,
+            transition_t1_size = [1, 3, 6],
+            transition_t_size = [1, 3, 4],
+            n_input_channels = 3,
+            conv1_t_size = 3,
+            conv1_t_stride = 1,
+            no_max_pool = self.no_max_pool,
+            n_classes = self.n_classes,
+            dropout = 0.0
+        )
         
         # Load model
-        model.load_state_dict(torch.load(self.model_path, map_location = device))
+        try:
+            model.load_state_dict(torch.load(self.model_path, map_location = device))
+        except RuntimeError as e:
+            raise ValueError(f"Failed to load the model from {self.model_path}. Ensure the architecture and weights match.") from e
         
         return model
     
@@ -179,7 +145,7 @@ class GestureRecognizer:
 
 def main():
     program = GestureRecognizer(
-        model_path = '../models/classify/T3D/t3d-121_0-mp_25-epochs.pth',
+        model_path = '../models/classify/T3D/t3d-121_0-mp_25-epochs_24frs.pth',
         model_arch = 't3d', block_arch = 121,
         drop_frame = 0,
         n_classes = 27
