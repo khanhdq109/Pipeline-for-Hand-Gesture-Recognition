@@ -61,7 +61,7 @@ class GestureRecognizer:
             # Convert to RGB and apply transformations
             frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             frame_tensor = transform(frame_rgb)
-            frames.append(frame_tensor.numpy())  # Store as NumPy array
+            frames.append(frame_tensor.numpy())
             
             # If enough frames are collected, send to server for prediction
             if len(frames) == self.num_frames:
@@ -70,7 +70,7 @@ class GestureRecognizer:
                     frames_data = pickle.dumps(np.array(frames))
                     
                     # Send frames to server for inference
-                    response = requests.post(self.server_url, data=frames_data, headers={"Content-Type": "application/octet-stream"})
+                    response = requests.post(self.server_url, data = frames_data, headers = {"Content-Type": "application/octet-stream"})
                     if response.status_code == 200:
                         predicted_label = response.json().get("predicted_label")
                         print(f"Prediction: {predicted_label}")
