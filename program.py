@@ -12,7 +12,7 @@ class GestureRecognizer:
         model_arch = 't3d', block_arch = 121,
         resize = (112, 112), num_frames = 24,
         no_max_pool = True, n_classes = 27,
-        drop_frame = 0
+        drop_frame = 0, clear_interval = 999
     ):
         # Initialize params
         self.model_path = model_path
@@ -24,6 +24,7 @@ class GestureRecognizer:
         self.no_max_pool = no_max_pool
         self.n_classes = n_classes
         self.drop_frame = drop_frame
+        self.clear_interval = clear_interval
         
         # Select device
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -82,6 +83,8 @@ class GestureRecognizer:
         print("Starting gesture recognition. Press 'q' to quit.")
         while True:
             frame_count += 1
+            if frame_count % self.clear_interval == 0:
+                frames.clear()
             
             # Drop frames
             if frame_count % (self.drop_frame + 1) != 0:
@@ -173,11 +176,12 @@ def main():
     ]
     
     program = GestureRecognizer(
-        model_path = '../models/classify/T3D/t3d-121_0-mp_24-epochs_30frs.pth',
+        model_path = '../models/classify/T3D/t3d-121_0-mp_25-epochs_30frs.pth',
         labels = labels,
         num_frames = 30,
         model_arch = 't3d', block_arch = 121,
         drop_frame = 5,
+        clear_interval = 500,
         n_classes = 27
     )
     
