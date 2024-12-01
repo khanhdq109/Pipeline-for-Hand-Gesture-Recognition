@@ -67,10 +67,9 @@ class GestureRecognizer:
             if len(frames) == self.num_frames:
                 try:
                     # Convert deque to a numpy array with the shape (num_frames, channels, height, width)
-                    frames_data = np.stack([f.numpy() for f in frames], axis=0)  # Stack along the time dimension
+                    frames_data = np.stack([f.numpy() for f in frames], axis = 1)  # Stack along the time dimension
                     
                     # Reorder to match the expected input shape (batch_size, channels, num_frames, height, width)
-                    frames_data = np.transpose(frames_data, (0, 3, 1, 2))  # (num_frames, height, width, channels) -> (channels, num_frames, height, width)
                     frames_data = frames_data[np.newaxis, ...]  # Add batch dimension, now the shape is (1, channels, num_frames, height, width)
                     
                     # Serialize frames using pickle
