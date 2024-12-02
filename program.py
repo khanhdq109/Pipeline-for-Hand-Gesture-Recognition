@@ -2,7 +2,7 @@ import cv2
 import torch
 from torchvision import transforms
 from network.T3D import T3D
-from collections import deque
+from collections import Counter, deque
 
 class GestureRecognizer:
     def __init__(
@@ -25,6 +25,9 @@ class GestureRecognizer:
         self.n_classes = n_classes
         self.drop_frame = drop_frame
         self.clear_interval = clear_interval
+        
+        # Predictions stack
+        self.preds = deque(maxlen = 20)
         
         # Select device
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -56,6 +59,13 @@ class GestureRecognizer:
 
         return model
     
+    def choose_label(self, min_count = 4):
+        counts = Counter(self.preds)
+        for element, count in counts.items():
+            if count > min_count and element != 25 and element != 26:
+                return element
+        return -1
+    
     def run(self):
         # Define transformations
         transform = transforms.Compose([
@@ -79,9 +89,15 @@ class GestureRecognizer:
         frame_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
         frames = deque(maxlen = self.num_frames) # Use a deque(circular buffer) to store frames
         frame_count = 0
+        rest = 0
         
         print("Starting gesture recognition. Press 'q' to quit.")
         while True:
+            if rest > 0:
+                self.preds.clear()
+                frames.clear()
+                rest -= 1
+                continue
             frame_count += 1
             if frame_count % self.clear_interval == 0:
                 frames.clear()
@@ -108,29 +124,31 @@ class GestureRecognizer:
             if len(frames) == self.num_frames:
                 # Convert deque to list of tensors and stack along the time dimension
                 input_frames = torch.stack(list(frames), dim = 0).permute(1, 0, 2, 3).unsqueeze(0).to(self.device)
-                print(input_frames.shape)
                 
                 with torch.no_grad():
                     output = model(input_frames)
                     _, pred = output.max(1)
                     predicted_label = self.labels[pred.item()]
                 
-                # Display the result
-                font = cv2.FONT_HERSHEY_SIMPLEX
-                bottom_left_corner = (5, frame_height - 10)
-                cv2.putText(
-                    frame,
-                    f"{predicted_label} ({pred.item()})",
-                    bottom_left_corner,
-                    font,
-                    0.5,
-                    (0, 0, 255),
-                    1,
-                    cv2.LINE_AA,
-                )
-                
                 # Log prediction
-                print(f"Prediction: {predicted_label} (Class {pred.item()})")
+                self.preds.append(pred.item())
+                true_pred = self.choose_label(min_count = 10)
+                if true_pred != -1 and pred.item() != 25 and pred.item() != 26:
+                    print(f"Prediction: {predicted_label} (Class {pred.item()})")
+                    # Display the result
+                    font = cv2.FONT_HERSHEY_SIMPLEX
+                    bottom_left_corner = (5, frame_height - 10)
+                    cv2.putText(
+                        frame,
+                        f"{predicted_label} ({pred.item()})",
+                        bottom_left_corner,
+                        font,
+                        0.5,
+                        (0, 0, 255),
+                        1,
+                        cv2.LINE_AA,
+                    )
+                    rest = 100
                 
             # Display the resulting frame
             cv2.imshow('Frame', frame)
@@ -146,14 +164,14 @@ class GestureRecognizer:
 
 def main():
     labels = [
-        'Swiping Left',
         'Swiping Right',
+        'Swiping Left',
         'Swiping Down',
         'Swiping Up',
-        'Pushing Hand Away',
         'Pulling Hand In',
-        'Sliding Two Fingers Left',
+        'Pushing Hand Away',
         'Sliding Two Fingers Right',
+        'Sliding Two Fingers Left',
         'Sliding Two Fingers Down',
         'Sliding Two Fingers Up',
         'Pushing Two Fingers Away',
@@ -176,11 +194,11 @@ def main():
     ]
     
     program = GestureRecognizer(
-        model_path = '../models/classify/T3D/t3d-121_0-mp_25-epochs_30frs.pth',
+        model_path = '../models/classify/T3D/t3d-121_0-mp_25-epochs_24frs.pth',
         labels = labels,
         num_frames = 30,
         model_arch = 't3d', block_arch = 121,
-        drop_frame = 5,
+        drop_frame = 0,
         clear_interval = 500,
         n_classes = 27
     )
