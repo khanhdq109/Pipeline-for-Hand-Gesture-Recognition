@@ -165,6 +165,54 @@ class NLBlock(nn.Module):
         
         return z
     
+class CPModule(nn.Module):
+    def __init__(self, channels, num_neighbors=8):
+        super(CPModule, self).__init__()
+        self.channels = channels
+        self.num_neighbors = num_neighbors
+        self.key = nn.Linear(channels, channels, bias=False)
+        self.query = nn.Linear(channels, channels, bias=False)
+        self.value = nn.Linear(channels, channels, bias=False)
+        self.softmax = nn.Softmax(dim=-1)
+
+    def forward(self, x):
+        # x shape: (batch, channels, depth, height, width)
+        batch_size, channels, depth, height, width = x.shape
+        x_flat = x.view(batch_size, channels, -1).transpose(1, 2)  # (batch, THW, channels)
+
+        # Compute keys, queries, values
+        keys = self.key(x_flat)
+        queries = self.query(x_flat)
+        values = self.value(x_flat)
+
+        # Compute similarity (using negative squared Euclidean distance)
+        sim_matrix = torch.bmm(queries, keys.transpose(1, 2))  # (batch, THW, THW)
+        sim_matrix /= (channels**0.5)
+
+        # Apply softmax to the similarity matrix
+        attention = self.softmax(sim_matrix)
+
+        # Aggregate the values
+        out = torch.bmm(attention, values)  # (batch, THW, channels)
+        out = out.transpose(1, 2).view(batch_size, channels, depth, height, width)
+
+        return out
+    
+class CPNet(nn.Module):
+    def __init__(self, base_model, num_classes=400):
+        super(CPNet, self).__init__()
+        self.base_model = base_model
+        self.cp_module = CPModule(channels=512)  # assuming 512 channels in feature maps
+        self.fc = nn.Linear(512, num_classes)
+
+    def forward(self, x):
+        x = self.base_model(x)
+        x = self.cp_module(x)
+        x = F.adaptive_avg_pool3d(x, (1, 1, 1))
+        x = x.view(x.size(0), -1)
+        x = self.fc(x)
+        return x
+    
 class ResNet(nn.Module):
     
     def __init__(
@@ -382,6 +430,8 @@ def main():
         nl_nums = 3,
         n_classes = 27
     ).to(device)
+    
+    model = CPNet(model)
 
     summary(model, (3, 30, 112, 112), device = str(device))
     
