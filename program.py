@@ -63,7 +63,7 @@ class GestureRecognizer:
 
         return model
 
-    def choose_label(self, min_count=4):
+    def choose_label(self, min_count = 4):
         counts = Counter(self.preds)
         for element, count in counts.items():
             if count > min_count and element not in {25, 26}:
@@ -73,21 +73,17 @@ class GestureRecognizer:
     def perform_action(self, label):
         """Perform computer actions based on the detected gesture label."""
         if label in {"Sliding Two Fingers Down", "Sliding Two Fingers Left", "Swiping Down", "Swiping Left"}:
-            print("Action: Scrolling Up")
             for distance in range(500, 0, -100):  # Start fast, then slow
                 pyautogui.scroll(distance)  # Positive value scrolls up
                 time.sleep(0.0001)  # Small delay between steps
         elif label in {"Sliding Two Fingers Up", "Sliding Two Fingers Right", "Swiping Up", "Swiping Right"}:
-            print("Action: Scrolling Down")
             for distance in range(-500, 0, 100):  # Start fast, then slow
                 pyautogui.scroll(distance)  # Negative value scrolls down
-                time.sleep(0.0001)  # Small delay between steps
+                time.sleep(0.0001)  # Small delay between stepss
         elif label in {"Zooming In With Full Hand", "Zooming In With Two Fingers"}:
             pyautogui.hotkey("ctrl", "+")  # Zoom in
-            print("Action: Zoom In")
         elif label in {"Zooming Out With Full Hand", "Zooming Out With Two Fingers"}:
             pyautogui.hotkey("ctrl", "-")  # Zoom out
-            print("Action: Zoom Out")
 
     def run(self):
         # Define transformations
@@ -214,7 +210,7 @@ def main():
         drop_frame = 0,
         clear_interval = 500,
         n_classes = 27,
-        demo = True
+        demo = False
     )
 
     program.run()
