@@ -106,7 +106,7 @@ class GestureRecognizer:
             raise RuntimeError("Failed to open the default camera.")
 
         frame_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-        frames = deque(maxlen=self.num_frames)  # Use a deque(circular buffer) to store frames
+        frames = deque(maxlen = self.num_frames)  # Use a deque(circular buffer) to store frames
         frame_count = 0
         rest = 0
 
